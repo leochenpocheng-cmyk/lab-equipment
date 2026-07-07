@@ -1,0 +1,2384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可靠度管理部可靠度與失效分析實驗室設備管理系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+TC:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F8F7F4; --surface: #FFFFFF; --surface2: #F2F0EB;
+  --border: #E4E0D8; --border2: #D0CBBf;
+  --text: #1A1916; --text2: #6B6760; --text3: #9B978F;
+  --blue: #1A5EB8; --blue-light: #E8F0FB; --blue-mid: #4A85D4;
+  --teal: #0D7A5F; --teal-light: #E2F4EE;
+  --amber: #9C5D0A; --amber-light: #FDF0DC;
+  --red: #B42B2B; --red-light: #FDEAEA;
+  --green: #2A7A3B; --green-light: #E8F5EC;
+  --gray-light: #F2F0EB; --gray-mid: #8A867E;
+  --dark-bg: #0F1117; --dark-surface: #181C27; --dark-border: rgba(255,255,255,0.07);
+  --neon-blue: #3D6FFF; --neon-teal: #0ECFAF; --neon-amber: #F5A623; --neon-red: #FF4D6D; --neon-green: #22C97A;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+  --font: 'IBM Plex Sans TC', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; font-size: 14px; line-height: 1.5; }
+
+/* TOPBAR */
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.logo { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--blue); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; flex-shrink: 0; }
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.topbar-badge { font-size: 11px; padding: 4px 12px; border-radius: 20px; background: var(--blue-light); color: var(--blue); font-weight: 500; border: 1px solid rgba(26,94,184,0.15); }
+
+/* LAYOUT */
+.app-body { display: flex; flex: 1; }
+
+/* SIDEBAR */
+.sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 1.25rem 0.875rem; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; display: flex; flex-direction: column; }
+.sidebar-section { margin-bottom: 1.5rem; }
+.sidebar-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 0.5rem; margin-bottom: 4px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text2); width: 100%; text-align: left; transition: all 0.15s; margin-bottom: 2px; font-family: var(--font); }
+.nav-item i { font-size: 17px; width: 20px; text-align: center; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--blue-light); color: var(--blue); }
+.nav-stat { display: flex; justify-content: space-between; padding: 4px 0.5rem; font-size: 12px; color: var(--text3); }
+.nav-stat strong { font-weight: 600; }
+.nav-stat strong.blue { color: var(--blue); }
+.nav-stat strong.teal { color: var(--teal); }
+.nav-stat strong.gray { color: var(--text3); }
+
+/* MAIN */
+.main { flex: 1; padding: 2rem; min-width: 0; overflow-x: hidden; }
+.page-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
+.page-hd-left h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.page-hd-left h1 i { color: var(--blue); font-size: 22px; }
+.page-hd-left p { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text); transition: all 0.15s; white-space: nowrap; font-family: var(--font); }
+.btn:hover { background: var(--surface2); }
+.btn i { font-size: 15px; }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #14489A; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { color: var(--red); }
+.btn-danger:hover { background: var(--red-light); }
+.btn-ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn-ghost:hover { background: var(--surface2); border-color: var(--border); }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); }
+.card-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--text2); display: flex; align-items: center; gap: 7px; text-transform: uppercase; letter-spacing: 0.04em; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; line-height: 1.5; }
+.badge-elec { background: var(--blue-light); color: var(--blue); }
+.badge-mat { background: var(--teal-light); color: var(--teal); }
+.badge-na { background: var(--gray-light); color: var(--gray-mid); }
+.badge-ok { background: var(--green-light); color: var(--green); }
+.badge-warn { background: var(--amber-light); color: var(--amber); }
+.badge-due { background: var(--red-light); color: var(--red); }
+.badge-none { background: var(--gray-light); color: var(--gray-mid); }
+
+/* TABLE */
+.collapsible-hd { display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none; }
+.collapsible-hd:hover { opacity:0.8; }
+.collapsible-body { overflow:hidden;transition:max-height 0.3s ease; }
+.collapsible-body.collapsed { display:none; }
+.chevron { font-size:14px;transition:transform 0.3s;color:var(--text3); }
+.chevron.open { transform:rotate(180deg); }
+
+.tbl-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); overflow-x: auto; }
+
+/* Filter chips */
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
+.filter-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.15s; white-space: nowrap; font-family: var(--font); position: relative; }
+.filter-chip:hover { background: var(--surface2); color: var(--text); }
+.filter-chip.active { background: var(--blue-light); color: var(--blue); border-color: rgba(26,94,184,0.3); }
+.filter-chip i { font-size: 13px; }
+.chip-clear { font-size: 11px; margin-left: 2px; opacity: 0.6; }
+.chip-clear:hover { opacity: 1; }
+.chip-dropdown { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); min-width: 200px; padding: 6px; }
+.chip-dropdown.open { display: block; }
+.chip-dropdown input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 12px; background: var(--surface2); color: var(--text); margin-bottom: 6px; font-family: var(--font); }
+.chip-dropdown input:focus { outline: none; border-color: var(--blue-mid); }
+.chip-opt { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; color: var(--text2); transition: background 0.1s; }
+.chip-opt:hover { background: var(--surface2); color: var(--text); }
+.chip-opt.sel { background: var(--blue-light); color: var(--blue); font-weight: 500; }
+.chip-opt-check { font-size: 11px; width: 14px; flex-shrink: 0; }
+.chip-foot { border-top: 1px solid var(--border); padding: 6px 4px 2px; margin-top: 4px; display: flex; gap: 4px; }
+.chip-btn { flex: 1; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-family: var(--font); }
+.chip-btn:hover { background: var(--surface2); }
+.chip-btn.apply { background: var(--blue); color: #fff; border-color: var(--blue); }
+.chip-btn.apply:hover { background: #14489A; }
+/* Owner pill */
+.owner-pill { display: inline-flex; align-items: center; font-size: 11px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 9px; white-space: nowrap; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); background: var(--surface2); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--surface2); }
+.td-name { font-weight: 500; white-space: normal !important; line-height: 1.4; }
+.td-mono { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+
+/* TOOLBAR */
+.toolbar { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+.search-wrap { flex: 1; min-width: 200px; position: relative; }
+.search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; pointer-events: none; }
+.search-wrap input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--surface); color: var(--text); font-family: var(--font); transition: border 0.15s; }
+.search-wrap input:focus { outline: none; border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(26,94,184,0.1); }
+select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--surface); color: var(--text); cursor: pointer; font-family: var(--font); }
+
+/* LIST ROWS */
+.list-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.list-row:last-child { border-bottom: none; }
+.list-name { font-size: 13px; font-weight: 500; }
+.list-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alert-dot.due { background: var(--red); }
+.alert-dot.warn { background: var(--amber); }
+.alert-dot.ok { background: var(--green); }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,15,12,0.45); z-index: 200; align-items: flex-start; justify-content: center; padding: 60px 1rem 2rem; overflow-y: auto; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 2rem; width: 580px; max-width: 100%; position: relative; box-shadow: var(--shadow-lg); margin: auto; }
+.modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text2); font-size: 16px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.modal-close:hover { background: var(--border); }
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1.5rem; padding-right: 36px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg.full { grid-column: 1/-1; }
+.fg label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.fg input, .fg select, .fg textarea { padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--surface); color: var(--text); width: 100%; font-family: var(--font); transition: border 0.15s; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(26,94,184,0.1); }
+.fg textarea { resize: vertical; min-height: 80px; }
+.modal-foot { margin-top: 1.5rem; display: flex; gap: 8px; justify-content: flex-end; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+
+/* DETAIL */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+.di-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.di-val { font-size: 13px; font-weight: 500; }
+
+/* BUDGET */
+.q-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1rem; }
+.q-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.875rem; text-align: center; }
+.q-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.q-val { font-size: 15px; font-weight: 600; }
+.q-val.blue { color: var(--blue); }
+.q-val.amber { color: var(--amber); }
+.budget-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.budget-row:last-child { border-bottom: none; }
+.budget-total { font-weight: 600; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--border2) !important; }
+.two-mini { display: flex; gap: 10px; }
+.two-mini > div { flex: 1; }
+.stat-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.stat-val { font-size: 22px; font-weight: 600; line-height: 1; }
+.stat-val.blue { color: var(--blue); }
+.stat-val.teal { color: var(--teal); }
+.stat-val.amber { color: var(--amber); }
+.stat-val.red { color: var(--red); }
+.stat-val.green { color: var(--green); }
+
+/* REPAIR */
+.repair-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.125rem; margin-bottom: 10px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 3.5rem 1rem; color: var(--text3); }
+.empty i { font-size: 40px; display: block; margin-bottom: 10px; color: var(--border2); }
+.empty p { font-size: 13px; }
+
+/* ── DARK DASHBOARD ── */
+.dark-dash { background: #0F1117; border-radius: var(--radius-xl); overflow: hidden; color: #E8E6F0; }
+.dd-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.dd-badge { font-size: 11px; padding: 4px 12px; border-radius: 20px; background: rgba(61,111,255,0.15); color: #6B9FFF; border: 1px solid rgba(61,111,255,0.25); }
+.dd-tabs { display: flex; gap: 4px; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.dd-tab { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: #6B6980; display: flex; align-items: center; gap: 6px; transition: all 0.15s; font-family: var(--font); }
+.dd-tab:hover { background: rgba(255,255,255,0.06); color: #C8C6D8; }
+.dd-tab.active { background: rgba(61,111,255,0.2); color: #6B9FFF; border: 1px solid rgba(61,111,255,0.3); }
+.dd-tab i { font-size: 14px; }
+.dd-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.kpi { background: #181C27; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 1rem; position: relative; overflow: hidden; }
+.kpi::before { content: ''; position: absolute; inset: 0; border-radius: 12px; opacity: 0.07; }
+.kpi.k-blue::before { background: #3D6FFF; }
+.kpi.k-teal::before { background: #0ECFAF; }
+.kpi.k-amber::before { background: #F5A623; }
+.kpi.k-red::before { background: #FF4D6D; }
+.kpi.k-green::before { background: #22C97A; }
+.kpi-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 8px; }
+.kpi.k-blue .kpi-icon { background: rgba(61,111,255,0.2); color: #6B9FFF; }
+.kpi.k-teal .kpi-icon { background: rgba(14,207,175,0.2); color: #0ECFAF; }
+.kpi.k-amber .kpi-icon { background: rgba(245,166,35,0.2); color: #F5A623; }
+.kpi.k-red .kpi-icon { background: rgba(255,77,109,0.2); color: #FF4D6D; }
+.kpi.k-green .kpi-icon { background: rgba(34,201,122,0.2); color: #22C97A; }
+.kpi-label { font-size: 10px; color: #6B6980; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.kpi-val { font-size: 22px; font-weight: 600; line-height: 1; }
+.kpi.k-blue .kpi-val { color: #6B9FFF; }
+.kpi.k-teal .kpi-val { color: #0ECFAF; }
+.kpi.k-amber .kpi-val { color: #F5A623; }
+.kpi.k-red .kpi-val { color: #FF4D6D; }
+.kpi.k-green .kpi-val { color: #22C97A; }
+.kpi-sub { font-size: 10px; color: #6B6980; margin-top: 4px; }
+
+.dd-panel { background: #181C27; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 1rem 1.125rem; }
+.dd-panel-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
+.dd-panel-title { font-size: 10px; font-weight: 600; color: #8B8AA0; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 7px; }
+.dd-panel-title i { font-size: 14px; }
+
+.dd-alert-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.dd-alert-item:last-child { border-bottom: none; }
+.dd-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dd-dot.red { background: #FF4D6D; }
+.dd-dot.amber { background: #F5A623; }
+.dd-dot.green { background: #0ECFAF; }
+.dd-name { font-size: 12px; font-weight: 500; color: #C8C6D8; flex: 1; }
+.dd-sub { font-size: 10px; color: #6B6980; }
+
+.dd-badge-r { display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.dd-badge-red { background: rgba(255,77,109,0.15); color: #FF7B93; border: 1px solid rgba(255,77,109,0.25); }
+.dd-badge-amber { background: rgba(245,166,35,0.15); color: #F5C06A; border: 1px solid rgba(245,166,35,0.25); }
+.dd-badge-green { background: rgba(14,207,175,0.15); color: #0ECFAF; border: 1px solid rgba(14,207,175,0.25); }
+.dd-badge-blue { background: rgba(61,111,255,0.15); color: #6B9FFF; border: 1px solid rgba(61,111,255,0.25); }
+.dd-badge-gray { background: rgba(255,255,255,0.07); color: #8B8AA0; border: 1px solid rgba(255,255,255,0.1); }
+
+.dd-chart-wrap { position: relative; width: 100%; height: 140px; }
+
+.owner-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.owner-item:last-child { border-bottom: none; }
+.owner-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+.owner-bar-wrap { width: 70px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.owner-bar { height: 100%; border-radius: 2px; }
+
+.bbar-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.bbar-row:last-child { margin-bottom: 0; }
+.bbar-hd { display: flex; justify-content: space-between; font-size: 11px; }
+.bbar-name { color: #8B8AA0; }
+.bbar-val { color: #C8C6D8; font-weight: 500; }
+.bbar-track { height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+.bbar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* Progress */
+.prog-section { margin-top: 0.75rem; }
+.prog-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+.prog-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+/* INPUT FORM dark */
+.dd-input-section { display: flex; flex-direction: column; gap: 1rem; }
+.sum-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.sum-box { background: #181C27; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 0.875rem; text-align: center; }
+.sum-box-label { font-size: 10px; color: #6B6980; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.sum-box-val { font-size: 16px; font-weight: 600; }
+.sum-box-val.blue { color: #6B9FFF; }
+.sum-box-val.amber { color: #F5A623; }
+.sum-box-val.green { color: #22C97A; }
+
+.dd-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dfg { display: flex; flex-direction: column; gap: 5px; }
+.dfg.full { grid-column: 1/-1; }
+.dfg label { font-size: 10px; font-weight: 600; color: #6B6980; text-transform: uppercase; letter-spacing: 0.05em; }
+.dfg select, .dfg input, .dfg textarea { padding: 8px 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; background: #0F1117; color: #C8C6D8; font-family: var(--font); transition: border 0.15s; width: 100%; }
+.dfg select:focus, .dfg input:focus, .dfg textarea:focus { outline: none; border-color: #3D6FFF; box-shadow: 0 0 0 3px rgba(61,111,255,0.15); }
+.dfg textarea { resize: vertical; min-height: 68px; }
+.dfg select option { background: #181C27; }
+.dd-submit-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 9px; background: #3D6FFF; color: #fff; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all 0.15s; width: 100%; font-family: var(--font); margin-top: 12px; }
+.dd-submit-btn:hover { background: #2D5FEF; }
+
+.dd-log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.dd-log-table th { padding: 7px 10px; text-align: left; font-size: 10px; font-weight: 600; color: #6B6980; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.dd-log-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #C8C6D8; vertical-align: middle; }
+.dd-log-table tr:last-child td { border-bottom: none; }
+.dd-log-table tr:hover td { background: rgba(255,255,255,0.03); }
+.td-amt { font-family: var(--mono); color: #F5A623; font-weight: 500; }
+.td-del-btn { background: none; border: none; cursor: pointer; color: #FF4D6D; padding: 3px 6px; border-radius: 6px; font-size: 13px; }
+.td-del-btn:hover { background: rgba(255,77,109,0.15); }
+
+.dd-empty { text-align: center; padding: 2rem; color: #4D4C60; font-size: 12px; }
+.dd-empty i { font-size: 28px; display: block; margin-bottom: 6px; color: #2C2E3F; }
+
+/* TOAST */
+.toast { display: none; position: fixed; bottom: 2rem; right: 2rem; background: #22C97A; color: #0F1117; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; align-items: center; gap: 8px; z-index: 300; box-shadow: var(--shadow-lg); }
+.toast.show { display: flex; animation: fadeout 2.5s forwards; }
+@keyframes fadeout { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+
+/* SECTION GAP */
+.section-gap { margin-bottom: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADkAAAAoCAYAAABEklK7AAAIkklEQVR4nN2abWzdVR3HP+ec//9/n2/v7fPuupUy2NxAGGMayIYoJuPBSILEBGMCMZkhxmimb0jUmBBNNIQ3GN4QjC+IQIxCCJmSTZD5MGCxDtGJ6FjbdS0dvbe3vb29j//z4IuObs3atVu7jvh91/Sc3zmf/+/8fuec37nCOef4P5e80hPA1MHZyzqEd1mtLyFnaoTDTyH8DKr9C8hox2UZR1yp5aqnj6GLb0LpTTwFxmvH7/02MtazaJ8ZrXmnVCbje2xOJvGlWNZYV8STtpFHjz6DZwtUQw1IiHUjI4t7smIMPz4+yOGJItLCvbkuvrupFyGWBr0ikGbidaTOU20YAIQQiEgXyMiifd7IFzlcmMRqjZOSV8Y+JKkk1yQTbE7E2RCPLdp3zSFNZQBdeB2jzyYbIQAZPa9t01jenZnhX+UqfygUQAkIwVlLQyme/bCAHRmj3Q/4wZY+dmYzC465ppDOGUz+FZSoE9rZVBD4EuvlCDo+P9duYKbKW9Nl+qdKlENNLhbjc21ZchGf1/OTBFJwT2cHvhS8ODpGETg0MfXxgLTlY9jSUcIzXhQCnHVEuu5G+hneKpZ4daLIRKjpi0e5v7uTrck42SBAADVjuKerTEJJPplOYYDhao3+RhNxgfy5ZpDOVDGnX0YIw0cJPRIoVPIGhiPb+cXxIaw17MykuS3bQlsQnGcjphS3tmbm/lZAQkmc1mzPpBYde80g9cSfcbUTNM94UQqBNgq/fQ8NPO5uy3BzJk0gl38+GavVebtcYUcyzm1trYu2WxNI1yygCwfBwUerKggkIrMLkbqOLQCJ8xPPUnr59DhWSvb29lzw46zJsc7kD6BMcS4WPSUIZRuq4+5LtvlGcZKXTufZ25Pj+vTiSxXWwJO28j5h8TB23pYhECoG6EuyOVit8cTQCF9e18V9uc4l219WTzpn0OP78ahhzNnsF2qLqw3TPPE4Zqr/omwOV2s8enyAT6dTPLRx/bL6XBZPWueQQmCm/kZYegdrznrR9yQO0NoShFPoU08jCJGZW5e0O1ip8pMTJ9mRTvGN3h68K3V2rRnD/vEi2yKazfn9KOEwZ7KNUgIX2YCgQUTkaYQGXzRojj5H4HcgE9csavf4TJXHBobYlc3wUE+OZRxZ57Sqy3WoWuOnJ4YpW8mm8CiuMUwznPWiUgLpxYn07iXStw8R6yESKMLQIm0F/cGvcKayoN0jk1M8dmKIu9rbeLBn3UUBwipCHpqY5ImTo+xqbeVrbQ1c4ffoc+Iw8CQquxsV70VGc6gND0OwjsCXNJoaUz2OLR2dZ9MBL4yN89zpPA/3ruf+XBfyYglZBcimNTx1coTf5Yt8c2OOPe0tmMKr+JTmIH1PomUWr+POuX4q1oPq+hLGSgQCAYTjB+a8ORNqnhwa4dhMhUf6NrAz03LJc1xRTBYaTZ48NYovBI/0baAtEmBn3kVPHkaH828ZqvMuZKR9/uDZm7GlnYjyX6k3LT6jiOpxjvEJfvnBKNsSSR7euJ5gmQlmMV0y5MlqnccHhtmaSrB3w7rZE4ezhOOvIWliz7llEOvDa929gBWBTN9EOHUEH42xHs8P/Jv+aJavdHewsyV9qdObp2VDGucYrdUJpKQUhjw2OMIdbRm+ur57toELQfiozA7qU/0IIfCUACR+1xcRKr7wBJKbEX4rg0rx8+oucl238P1cO62Bvxp8s2Mst+HzI2M8MzxKVEpinuK+XDcPfARomzRHn0V4KWyjgJIC4wRWJfBbtqPS2+fZcs7NlS0mbYwXzW7+6a7mvr5ubgtOIf3FD9uXomVBToeaA/kiNeeoWUtXEOPe7rP1GGcruMYpgupJajUzG4PxTUR6v45QURCz+c0BB8cnOJSf4MaWFB3RgIOFKa7O7OaHyTzZ4tM0w3GC+KOIYPFSyGWBjClFt68YEgIhJDvSSeJKzf1feFn8jd8izB9AhIeIeiENFUFgEd7ZrDhSq/OzoWHK2vKXySmuT6fYt6mPLbU/Eo6+gJUaSxvI1VuqsMwtRDtL6Bw9QcC+vh4eXODMKIMs/voHiPR9h2awlYj7L7rw2rw2x6bLTIcaq0OE73N7W5Yt8YDmxGEc4ewtRcZArC7ksjz54uhpjpam+dHWzdzefuF4EYktBFf1wnQ/fvRqAN4uTXNgYoqGNuxpy9I/VWJbKskdHZ1QeZ9mdQycJfAkNtq5YFFrJVoS8oNanedGT7MlHp9XerigZJRyahdvFku8cWqIptV8tjXLZ1ozBFJyut6gLRIQkZJw4u9EA0O15jDWoeKbllVLvRgtCfmnwgRlpcgG3pKliaY1DFbrHCpM8o9KlXbfY097Kze1pObFcC426ynbyKOLR3ChRUmBExG81LYVIp2vJSEHqjWwjvfLVd6eLHFDJj0XyNo5prVhsFLlnekZ3qvWaVrDdck4+3rX05eI4y3mFdtEj/0aZYrUtSUaUdjENmRswyrizWpJyL5EAiamKAjB9/5zgmvjUZKehwNq1jEZamKex1WxCPd2tXJjKkXaX8qsI8z/Fj11BGMcSgmMixB03TO33aymloS8P9eFsZbDkyWqQNE6Ks2QTt9neyrJp7It9CZiJJRiOZHkdAU9vh9TOIgxs3un70lkx12oxLUrBlpIy37VCq2lYWcP3YGUF1U6BHBhCVs+Rpg/iGicJAwd1jl8JZGttxDZuBfE5Sk5rejpztVP4SrvXWCJCZxpYGqj6JnjKD2Oc27uIi2lQKgE0XV3Irw0YAGL8zKo1A4QahG7F6cVfToz8y5e6TeYM69TC8oB1iGMo6kt535Rax3CzmA+fAmlZhe7ChQm6MMmbkCqjwGkc5JGVdO4EORSNoD6Of0j2gGO8x8JLl0rDAJHxJc4u3qP1YEv0aucYFcE6aWux/pxglWshzkcSqVBrl4SumK/GVhL/Q/uEZjVvrh3wwAAAABJRU5ErkJggg==" style="width:42px;height:42px;object-fit:contain;flex-shrink:0">
+    <div>
+      <div class="topbar-title">可靠度管理部可靠度與失效分析實驗室</div>
+      <div class="topbar-sub">設備管理系統 <span id="topbar-year" style="color:var(--blue);font-weight:600">2026</span></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+    <span style="font-size:11px;color:var(--text3)">年度</span>
+    <div style="display:flex;gap:4px">
+      <button onclick="switchYear(2026)" id="yr-2026" class="filter-chip active" style="font-size:12px;padding:4px 12px">2026</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <div class="sidebar-section" style="flex:1">
+      <div class="sidebar-label">主選單</div>
+      <button class="nav-item active" onclick="switchPage('dashboard')" id="nt-dashboard"><i class="ti ti-layout-dashboard"></i> 總覽 <span style="font-size:10px;opacity:0.6">Overview</span></button>
+      <button class="nav-item" onclick="switchPage('equipment')" id="nt-equipment"><i class="ti ti-clipboard-list"></i> 設備清單 <span style="font-size:10px;opacity:0.6">Equipment</span></button>
+      <button class="nav-item" onclick="switchPage('calibration')" id="nt-calibration"><i class="ti ti-certificate"></i> 校驗管理 <span style="font-size:10px;opacity:0.6">Calibration</span></button>
+      <button class="nav-item" onclick="switchPage('maintenance')" id="nt-maintenance"><i class="ti ti-settings-2"></i> 保養管理 <span style="font-size:10px;opacity:0.6">Maintenance</span></button>
+      <button class="nav-item" onclick="switchPage('booking')" id="nt-booking"><i class="ti ti-calendar-event"></i> 設備預約 <span style="font-size:10px;opacity:0.6">Booking</span></button>
+      <button class="nav-item" onclick="switchPage('consumables')" id="nt-consumables"><i class="ti ti-package"></i> 耗材管理 <span style="font-size:10px;opacity:0.6">Consumables</span></button>
+      <button class="nav-item" onclick="switchPage('repair')" id="nt-repair"><i class="ti ti-tools"></i> 維修紀錄 <span style="font-size:10px;opacity:0.6">Repair</span></button>
+      <button class="nav-item" onclick="switchPage('budget')" id="nt-budget"><i class="ti ti-report-money"></i> 預算管理 <span style="font-size:10px;opacity:0.6">Budget</span></button>
+    </div>
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:0 0.5rem;margin-bottom:10px">設備統計</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 0.5rem 10px;border-bottom:1px solid var(--border);margin-bottom:8px">
+        <span style="font-size:12px;color:var(--text2)">總計</span>
+        <span><span style="font-size:20px;font-weight:500;color:var(--text)">20</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem;border-bottom:0.5px solid var(--border)">
+        <div style="width:7px;height:7px;border-radius:50%;background:#185FA5;flex-shrink:0"></div>
+        <span style="font-size:12px;color:var(--text2);flex:1">電性設備</span>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">10</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem;border-bottom:0.5px solid var(--border)">
+        <div style="width:7px;height:7px;border-radius:50%;background:#0F6E56;flex-shrink:0"></div>
+        <span style="font-size:12px;color:var(--text2);flex:1">材料設備</span>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">8</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem">
+        <div style="width:7px;height:7px;border-radius:50%;background:#888780;flex-shrink:0"></div>
+        <span style="font-size:12px;color:var(--text2);flex:1">測試電腦</span>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">2</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content"></main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-check"></i> 已新增紀錄！</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const EQ=[
+  {id:1,cat:'電性',prop:'1545000225',name:'Data logger 資料記錄器',brand:'Keysight',model:'DQA973A',sn:'MY59006575',owner:'Vimal Pandey',calMethod:'委外校驗',calExpiry:'2026-12-15',lastCal:'2024-12-11',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-12-11',calStatus:'尚未校驗',calPlan:0,calCost:0,vendor:'克達科技有限公司',contact:'Kennis / 0901-125-167'},
+  {id:2,cat:'電性',prop:'1545000517',name:'Oscilloscope & Function Generator 示波器',brand:'Tektronix',model:'MSO24 2-BW-200+R3',sn:'1545000517',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'2025-06-15',lastCal:'2024-10-08',calCost:0,calPlan:1920,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-10-08',calStatus:'尚未校驗',calPlan:1920,calCost:0,vendor:'洛克儀器股份有限公司',contact:'張峻福 / 0911-571-628'},
+  {id:3,cat:'電性',prop:'1545000224',name:'Source Meter 源量表',brand:'Keysight',model:'B2912B',sn:'MY61390351',owner:'Vimal Pandey',calMethod:'委外校驗',calExpiry:'2025-04-01',lastCal:'2024-11-01',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-11-01',calStatus:'尚未校驗',calPlan:0,calCost:0,vendor:'克達科技有限公司',contact:'Kennis / 0901-125-167'},
+  {id:4,cat:'電性',prop:'6135005204',name:'Multi-Meter 三用電表',brand:'Fluke',model:'289',sn:'58710045',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-02-22',calCost:1134,calPlan:1800,lastMaint:'2025-02-25',maintPlan:'2025-02-25',maintCost:0,maintPlanCost:0,calStatus:'已校驗',calPlan:1800,calScheduled:'2026-04-08',vendor:'克達科技有限公司',contact:'Kennis / 0901-125-167'},
+  {id:5,cat:'電性',prop:'6135008898',name:'Multi-Meter 三用電表',brand:'Fluke',model:'17B+',sn:'63753468WS',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-01-31',calCost:0,calPlan:1800,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calPlan:1800,calCost:0,calScheduled:'2026-10-25',calStatus:'尚未校驗',vendor:'百電企業有限公司',contact:'陳威洋 / 0910-010-496'},
+  {id:6,cat:'電性',prop:'1545000530',name:'Source Meter 源量表',brand:'ITECH',model:'IT2801',sn:'800466701178711',owner:'Vimal Pandey',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-01-31',calCost:1512,calPlan:2500,lastMaint:'2025-02-22',maintPlan:'2025-02-22',maintCost:0,maintPlanCost:0,calScheduled:'2026-10-25',calStatus:'已校驗',calPlan:2500,vendor:'克達科技有限公司',contact:'Kennis / 0901-125-167'},
+  {id:7,cat:'電性',prop:'1545000529',name:'Programmable Power Supply 可程式電源供應器',brand:'Chroma',model:'62017E-230-3',sn:'1545000529',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2024-10-29',calCost:0,calPlan:1440,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-10-25',calStatus:'尚未校驗',calPlan:1440,vendor:'致茂(Chroma)電子',contact:'Eric Liu / 0928-031-102'},
+  {id:8,cat:'電性',prop:'6135007750',name:'Programmable Power Supply 可程式電源供應器',brand:'固緯',model:'GPP-6030',sn:'GEW910292',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-02-22',calCost:1512,calPlan:1500,lastMaint:'2025-02-25',maintPlan:'2025-02-25',maintCost:0,maintPlanCost:0,calScheduled:'2026-04-08',calStatus:'已校驗',calPlan:1500,vendor:'固緯',contact:'孫益章 / 0919-015561'},
+  {id:9,cat:'電性',prop:'6135008924',name:'Power Supply 電源供應器',brand:'固緯',model:'SPD-3606',sn:'GEX833106',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-01-31',calCost:0,calPlan:1500,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-10-25',calStatus:'尚未校驗',calPlan:1500,calCost:0,vendor:'固緯',contact:'孫益章 / 0919-015561'},
+  {id:10,cat:'電性',prop:'6135004969',name:'Power Supply 電源供應器',brand:'ITECH',model:'IT6322B',sn:'800068020776910',owner:'陳柏丞',calMethod:'委外校驗',calExpiry:'',lastCal:'2025-02-22',calCost:1890,calPlan:4500,lastMaint:'2025-02-25',maintPlan:'2025-02-25',maintCost:0,maintPlanCost:0,calScheduled:'2026-04-08',calStatus:'已校驗',calPlan:4500,vendor:'克達科技有限公司',contact:'Kennis / 0901-125-167'},
+  {id:11,cat:'電性/材料',prop:'1545000570',name:'Chamber 環境試驗箱',brand:'HITACHI',model:'EC-25EXHH',sn:'U5551319',owner:'蕭志祥',calMethod:'遊校校驗',calExpiry:'',lastCal:'2024-02-01',calCost:7560,calPlan:7560,lastMaint:'2025-04-11',maintPlan:'2025-04-11',maintCost:5250,maintPlanCost:21000,calScheduled:'2026-04-08',calStatus:'已校驗',vendor:'景盛企業有限公司',contact:'曾群宏 / 0975-910-503'},
+  {id:12,cat:'材料',prop:'無財編',name:'Calibration Ruler 校正尺',brand:'KEYENCE',model:'OP-87657',sn:'22954.2101.29',owner:'熊夢平',calMethod:'委外校驗',calExpiry:'',lastCal:'2024-10-11',calCost:0,calPlan:7200,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,calScheduled:'2026-10-01',calStatus:'尚未校驗',vendor:'基恩斯股份有限公司',contact:'劉哲維 / 0975-530-752'},
+  {id:13,cat:'材料',prop:'1545000199',name:'Digital Microscope 數位顯微鏡',brand:'KEYENCE',model:'VHX-970',sn:'4B120029',owner:'熊夢平',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,vendor:'基恩斯股份有限公司',contact:'劉哲維 / 0975-530-752'},
+  {id:14,cat:'材料',prop:'1545000200',name:'SEM / EDX 掃描電子顯微鏡',brand:'Jeol/Oxford',model:'JSM-IT200',sn:'MP1040007170717',owner:'蕭志祥',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'2024-10-25',maintPlan:'',maintCost:40005,maintPlanCost:40005,maintScheduled:'2026-05-08',maintStatus:'已保養',vendor:'捷東股份有限公司',contact:'張奕翔 / 02-2395-2978 ext.130'},
+  {id:15,cat:'材料',prop:'1545000223',name:'FT-IR 傅立葉紅外線光譜儀',brand:'Bruker',model:'LUMOS II',sn:'484',owner:'熊夢平',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'2025-01-10',maintPlan:'2025-01-10',maintCost:21840,maintPlanCost:21840,maintScheduled:'2026-03-23',maintStatus:'已保養',maintCost:21840,vendor:'台灣布魯克生命科學',contact:'皮亦雄 / 0933-153-016'},
+  {id:16,cat:'材料',prop:'1545000372',name:'X-ray X光檢測儀',brand:'Waygate Technologies',model:'phoenix nanome X',sn:'101N1301-547723',owner:'熊夢平',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'2025-02-12',maintPlan:'2025-02-12',maintCost:39483,maintPlanCost:39483,maintScheduled:'2026-01-12',maintStatus:'已保養',vendor:'帝仕高國際有限公司',contact:'Jana 許乃文 / 886-3-3715899 ext.860'},
+  {id:17,cat:'材料',prop:'1545000218',name:'Grinding Machine 研磨台',brand:'Buehler',model:'EcoMet 30',sn:'EC30SM-221151',owner:'蕭志祥',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,vendor:'汎達科技有限公司',contact:'Kevin / 0900-018-951'},
+  {id:18,cat:'材料',prop:'1545000219',name:'Precision Cutter 切割機',brand:'Buehler',model:'IsoMet 1000',sn:'IPS-05897',owner:'蕭志祥',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,vendor:'汎達科技有限公司',contact:'Kevin / 0900-018-951'},
+  {id:19,cat:'測試電腦',prop:'6135003656',name:'Desktop PC 測試電腦',brand:'LENOVO',model:'T470',sn:'PF-10YM7C',owner:'熊夢平',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,vendor:'',contact:''},
+  {id:20,cat:'測試電腦',prop:'6135003174',name:'Desktop PC 測試電腦',brand:'LENOVO',model:'T460',sn:'(需補充)',owner:'熊夢平',calMethod:'不需校驗',calExpiry:'',lastCal:'',calCost:0,calPlan:0,lastMaint:'',maintPlan:'',maintCost:0,maintPlanCost:0,vendor:'',contact:''}
+];
+
+const chamberMaint=[
+  {id:'11-Q1',eqId:11,quarter:'Q1',maintScheduled:'2026-02-24',maintStatus:'已保養',maintCost:5250,maintPlanCost:5250},
+  {id:'11-Q2',eqId:11,quarter:'Q2',maintScheduled:'2026-04-08',maintStatus:'已保養',maintCost:5250,maintPlanCost:5250},
+  {id:'11-Q3',eqId:11,quarter:'Q3',maintScheduled:'2026-09-01',maintStatus:'尚未保養',maintCost:0,maintPlanCost:5250},
+  {id:'11-Q4',eqId:11,quarter:'Q4',maintScheduled:'2026-12-01',maintStatus:'尚未保養',maintCost:0,maintPlanCost:5250},
+];
+
+let repairs=[
+  {id:1001,eqId:1,date:'2024-03-01',note:'碳棒更換',cost:0},
+  {id:1002,eqId:16,date:'2025-01-16',note:'更換冷卻風扇',cost:0}
+];
+
+let costEntries=[];
+let currentPage='dashboard';
+let currentYear = 2026;
+const yearData = {
+  2025: { hasData: false },
+  2026: { hasData: true },
+  2027: { hasData: false },
+};
+let dashTab='overview';
+let editId=null;
+let calChartInst=null,maintChartInst=null;
+
+const CAL_BUDGET=32520, MAINT_BUDGET=127998;
+const fd=s=>{if(!s)return'—';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('zh-TW')};
+const fm=n=>n?'NT$'+n.toLocaleString():'—';
+
+function calSt(e){
+  if(e.calMethod==='不需校驗')return{label:'不需校驗',cls:'none'};
+  if(e.calExpiry){
+    const diff=(new Date(e.calExpiry)-new Date())/86400000;
+    if(diff<0)return{label:'已過期',cls:'due'};
+    if(diff<90)return{label:'即將到期',cls:'warn'};
+    return{label:'有效',cls:'ok'};
+  }
+  return{label:'未設定',cls:'warn'};
+}
+
+function switchPage(p){
+  currentPage=p;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nt-'+p).classList.add('active');
+  const badge = document.getElementById('topbar-year');
+  if(badge) badge.textContent = currentYear;
+  render();
+}
+
+function switchYear(year){
+  currentYear = year;
+  document.querySelectorAll('[id^="yr-"]').forEach(el=>el.classList.remove('active'));
+  const btn = document.getElementById('yr-'+year);
+  if(btn) btn.classList.add('active');
+  const badge = document.getElementById('topbar-year');
+  if(badge) badge.textContent = year;
+  render();
+}
+
+function render(){
+  const mc=document.getElementById('main-content');
+
+  // Only dashboard, consumables, budget are year-dependent
+  const yearSensitive = ['dashboard','consumables','budget'];
+  const yearHasData = (currentYear === 2026);
+  if(!yearHasData && yearSensitive.includes(currentPage)){
+    mc.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;text-align:center;color:var(--text3)">'
+      +'<i class="ti ti-calendar-off" style="font-size:48px;margin-bottom:1rem;color:var(--border2)"></i>'
+      +'<div style="font-size:16px;font-weight:500;color:var(--text2);margin-bottom:8px">'+currentYear+' 年度</div>'
+      +'<div style="font-size:13px">此年度尚無資料，請切換至 2026 查看</div>'
+      +'</div>';
+    return;
+  }
+
+  if(currentPage==='dashboard'){
+    mc.innerHTML=renderDashboard();
+    renderBudgetDonuts();
+    setTimeout(()=>renderTimeline(), 0);
+    const badge=document.getElementById('dash-today-badge');
+    if(badge){const d=new Date();badge.textContent='今天：'+d.getFullYear()+' / '+String(d.getMonth()+1).padStart(2,'0')+' / '+String(d.getDate()).padStart(2,'0');}
+  }
+  else if(currentPage==='equipment')mc.innerHTML=renderEquipment();
+  else if(currentPage==='calibration')mc.innerHTML=renderCalibration();
+  else if(currentPage==='maintenance')mc.innerHTML=renderMaintenance();
+  else if(currentPage==='repair')mc.innerHTML=renderRepair();
+  else if(currentPage==='budget')mc.innerHTML=renderBudget();
+  else if(currentPage==='booking')mc.innerHTML=renderBooking();
+  else if(currentPage==='consumables'){mc.innerHTML=renderConsumables();setTimeout(()=>{const c=document.getElementById('con-count');if(c)c.textContent=consumables2026.length+' 筆';},0);}
+  if(currentPage==='dashboard')initCharts();
+  if(currentPage==='equipment')filterEquipment();
+}
+
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  const total=EQ.length;
+  const calData=EQ.filter(e=>e.calMethod!=='不需校驗');
+  const calDone=calData.filter(e=>e.calStatus==='已校驗').length;
+  const calIng=calData.filter(e=>e.calStatus==='校驗中').length;
+  const calNot=calData.filter(e=>!e.calStatus||e.calStatus==='尚未校驗').length;
+  const upcomingCal=calData.filter(e=>e.calStatus==='尚未校驗'||!e.calStatus).filter(e=>e.calScheduled).sort((a,b)=>a.calScheduled.localeCompare(b.calScheduled)).slice(0,3);
+  const maintBase=EQ.filter(e=>[14,15,16].includes(e.id));
+  const allMaintRows=[...chamberMaint,...maintBase.map(e=>({...e,quarter:null}))];
+  const maintDone=allMaintRows.filter(r=>r.maintStatus==='已保養').length;
+  const maintIng=allMaintRows.filter(r=>r.maintStatus==='保養中').length;
+  const maintNot=allMaintRows.filter(r=>!r.maintStatus||r.maintStatus==='尚未保養').length;
+  const upcomingMaint=allMaintRows.filter(r=>r.maintStatus==='尚未保養'||!r.maintStatus).filter(r=>r.maintScheduled).sort((a,b)=>a.maintScheduled.localeCompare(b.maintScheduled)).slice(0,3);
+  const repairCount=repairs.length;
+  const repairThisYear=repairs.filter(r=>r.date&&r.date.startsWith('2026')).length;
+  const calPlan=calData.reduce((s,e)=>s+(e.calPlan||0),0);
+  const calActual=calData.reduce((s,e)=>s+(e.calCost||0),0);
+  const maintPlan=maintBase.reduce((s,e)=>s+(e.maintPlanCost||0),0)+chamberMaint.reduce((s,r)=>s+(r.maintPlanCost||0),0);
+  const maintActual=maintBase.reduce((s,e)=>s+(e.maintCost||0),0)+chamberMaint.reduce((s,r)=>s+(r.maintCost||0),0);
+  const totalPlan=calPlan+maintPlan;
+  const totalActual=calActual+maintActual;
+  const calPct=calPlan>0?Math.min(Math.round(calActual/calPlan*100),100):0;
+  const maintPct=maintPlan>0?Math.min(Math.round(maintActual/maintPlan*100),100):0;
+  const calOver=calActual>calPlan,maintOver=maintActual>maintPlan;
+  const R=38,C=+(2*Math.PI*R).toFixed(2);
+  const calDash=Math.round((calPct/100)*C);
+  const maintDash=Math.round((maintPct/100)*C);
+
+  return`
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem">
+  <div>
+    <h1 style="font-size:20px;font-weight:600;display:flex;align-items:center;gap:10px"><i class="ti ti-layout-dashboard" style="color:var(--blue);font-size:22px"></i>總覽</h1>
+    <p style="font-size:12px;color:var(--text3);margin-top:3px">2026 年度 · 設備 · 校驗 · 保養 · 維修彙整</p>
+  </div>
+  <div id="dash-today-badge" style="font-size:11px;color:var(--text3);background:var(--surface2);padding:4px 12px;border-radius:20px;border:1px solid var(--border)"></div>
+</div>
+
+${(()=>{
+  const conTotal = consumables2026.filter(r=>r.ordered).reduce((s,r)=>s+r.cost,0);
+  const conBudget = 120000;
+  const conRemain = conBudget - conTotal;
+  const conPct = Math.min(Math.round(conTotal/conBudget*100),100);
+  const conOver = conTotal > conBudget;
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1rem">'
+    +[
+      {label:'設備總數',val:total,sub:'全部納管設備',icon:'ti-clipboard-list',color:'#185FA5',bg:'#E8F0FB'},
+      {label:'校驗完成率',val:Math.round(calDone/calData.length*100)+'%',sub:'已完成 '+calDone+' / '+calData.length+' 台',icon:'ti-certificate',color:'#0D7A5F',bg:'#E2F4EE'},
+      {label:'保養完成率',val:Math.round(maintDone/allMaintRows.length*100)+'%',sub:'已完成 '+maintDone+' / '+allMaintRows.length+' 項',icon:'ti-settings-2',color:'#9C5D0A',bg:'#FDF0DC'},
+      {label:'維修紀錄',val:repairCount,sub:'2026年 '+repairThisYear+' 筆',icon:'ti-tools',color:'#444441',bg:'#F1EFE8'}
+    ].map(k=>'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;box-shadow:var(--shadow-sm)">'
+      +'<div style="width:32px;height:32px;border-radius:8px;background:'+k.bg+';display:flex;align-items:center;justify-content:center;margin-bottom:10px">'
+      +'<i class="ti '+k.icon+'" style="font-size:16px;color:'+k.color+'" aria-hidden="true"></i></div>'
+      +'<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">'+k.label+'</div>'
+      +'<div style="font-size:26px;font-weight:600;color:'+k.color+';line-height:1">'+k.val+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);margin-top:5px">'+k.sub+'</div>'
+      +'</div>').join('')
+    +'</div>';
+})()}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm)">
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;margin-bottom:1rem"><i class="ti ti-certificate" style="font-size:14px" aria-hidden="true"></i> 校驗狀態</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      ${[['已校驗',calDone,'#E2F4EE','#0D7A5F'],['校驗中',calIng,'#FDF0DC','#9C5D0A'],['尚未校驗',calNot,'#F1EFE8','#444441']].map(([l,n,bg,c])=>'<div style="background:'+bg+';border-radius:var(--radius-md);padding:0.75rem;text-align:center"><div style="font-size:20px;font-weight:600;color:'+c+'">'+n+'</div><div style="font-size:10px;color:'+c+';opacity:0.8;margin-top:2px">'+l+'</div></div>').join('')}
+    </div>
+    <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;display:flex;margin-bottom:4px">
+      <div style="height:100%;width:${Math.round(calDone/calData.length*100)}%;background:#0D7A5F"></div>
+      <div style="height:100%;width:${Math.round(calIng/calData.length*100)}%;background:#9C5D0A"></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px">完成率 ${Math.round(calDone/calData.length*100)}%</div>
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:7px">近期待校驗</div>
+    ${upcomingCal.length===0
+      ?'<div style="font-size:12px;color:var(--text3)">無待校驗設備</div>'
+      :upcomingCal.map(e=>{
+        const cc=e.cat==='電性'?'elec':e.cat==='材料'?'mat':'na';
+        return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)">'
+          +'<span class="badge badge-'+cc+'">'+e.cat+'</span>'
+          +'<div style="flex:1;min-width:0;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.name+'</div>'
+          +'<div style="font-size:11px;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:var(--radius-sm);white-space:nowrap;border:0.5px solid var(--border)">'+fd(e.calScheduled)+'</div>'
+          +'</div>';
+      }).join('')
+    }
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm)">
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;margin-bottom:1rem"><i class="ti ti-settings-2" style="font-size:14px" aria-hidden="true"></i> 保養狀態</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      ${[['已保養',maintDone,'#E2F4EE','#0D7A5F'],['保養中',maintIng,'#FDF0DC','#9C5D0A'],['尚未保養',maintNot,'#F1EFE8','#444441']].map(([l,n,bg,c])=>'<div style="background:'+bg+';border-radius:var(--radius-md);padding:0.75rem;text-align:center"><div style="font-size:20px;font-weight:600;color:'+c+'">'+n+'</div><div style="font-size:10px;color:'+c+';opacity:0.8;margin-top:2px">'+l+'</div></div>').join('')}
+    </div>
+    <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;display:flex;margin-bottom:4px">
+      <div style="height:100%;width:${Math.round(maintDone/allMaintRows.length*100)}%;background:#0D7A5F"></div>
+      <div style="height:100%;width:${Math.round(maintIng/allMaintRows.length*100)}%;background:#9C5D0A"></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px">完成率 ${Math.round(maintDone/allMaintRows.length*100)}%</div>
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:7px">近期待保養</div>
+    ${upcomingMaint.length===0
+      ?'<div style="font-size:12px;color:var(--text3)">無待保養設備</div>'
+      :upcomingMaint.map(r=>{
+        const eq=EQ.find(e=>e.id===(r.eqId||r.id));
+        const name=eq?eq.name:r.name||'—';
+        const q=r.quarter?' <span style="font-size:10px;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:10px;margin-left:3px">'+r.quarter+'</span>':'';
+        return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)">'
+          +'<div style="flex:1;min-width:0;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+q+'</div>'
+          +'<div style="font-size:11px;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:var(--radius-sm);white-space:nowrap;border:0.5px solid var(--border)">'+fd(r.maintScheduled)+'</div>'
+          +'</div>';
+      }).join('')
+    }
+  </div>
+</div>
+
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm);margin-bottom:1.25rem">
+  <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;margin-bottom:1.25rem"><i class="ti ti-report-money" style="font-size:14px" aria-hidden="true"></i> 2026 年度預算與花費</div>
+  <div id="budget-donuts"></div>
+</div>
+
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm);margin-bottom:1.25rem">
+  <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;margin-bottom:1rem"><i class="ti ti-timeline" style="font-size:14px" aria-hidden="true"></i> 2026 年度時間軸</div>
+  <div id="dash-timeline"></div>
+</div>
+
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm)">
+  <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;margin-bottom:1rem"><i class="ti ti-tools" style="font-size:14px" aria-hidden="true"></i> 維修紀錄</div>
+  ${repairs.length===0
+    ?'<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">尚無維修紀錄</div>'
+    :repairs.slice(-5).reverse().map(r=>{
+      const eq=EQ.find(e=>e.id===r.eqId);
+      return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">'
+        +'<div style="width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(eq?eq.name:'—')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+r.note+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:11px;color:var(--text2)">'+r.date+'</div>'
+        +(r.cost?'<div style="font-size:11px;color:var(--amber);font-weight:500">NT$'+r.cost.toLocaleString()+'</div>':'')
+        +'</div></div>';
+    }).join('')
+  }
+</div>`;
+  setTimeout(()=>renderTimeline(),0);
+}
+
+function renderTimeline(){
+  const container = document.getElementById('dash-timeline');
+  if(!container) return;
+  const todayMonth = 5;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const events = [];
+  EQ.filter(e=>e.calMethod!=='不需校驗'&&e.calScheduled).forEach(e=>{
+    const d=new Date(e.calScheduled);
+    const n=e.name.split(' ').slice(0,3).join(' ');
+    events.push({month:d.getMonth(),day:d.getDate(),name:n,cost:e.calCost||e.calPlan||0,status:e.calStatus||'尚未校驗'});
+  });
+  const mIds=[14,15,16];
+  EQ.filter(e=>mIds.includes(e.id)&&e.maintScheduled).forEach(e=>{
+    const d=new Date(e.maintScheduled);
+    const n=e.name.split(' ').slice(0,3).join(' ');
+    events.push({month:d.getMonth(),day:d.getDate(),name:n,cost:e.maintCost||e.maintPlanCost||0,status:e.maintStatus||'尚未保養'});
+  });
+  chamberMaint.forEach(r=>{
+    const d=new Date(r.maintScheduled);
+    events.push({month:d.getMonth(),day:d.getDate(),name:'Chamber 環境試驗箱 '+r.quarter,cost:r.maintCost||r.maintPlanCost||0,status:r.maintStatus||'尚未保養'});
+  });
+  const byMonth={};
+  for(let i=0;i<12;i++) byMonth[i]=[];
+  events.forEach(ev=>byMonth[ev.month].push(ev));
+  Object.values(byMonth).forEach(a=>a.sort((a,b)=>a.day-b.day));
+
+  let hdr='',dots='',cols='';
+  for(let i=0;i<12;i++){
+    const isCur=i===todayMonth,isPast=i<todayMonth;
+    const col=isCur?'var(--blue)':isPast?'var(--text3)':'var(--text2)';
+    hdr+='<div style="text-align:center;padding:4px 2px;font-size:11px;font-weight:600;color:'+col+'">'+months[i]+(isCur?'<div style="font-size:9px">▼</div>':'')+'</div>';
+    const has=byMonth[i].length>0;
+    dots+='<div style="display:flex;align-items:center;justify-content:center;padding:5px 0">'+(has?'<div style="width:10px;height:10px;border-radius:50%;background:'+(isPast?'var(--teal)':isCur?'var(--blue)':'var(--border2)')+';border:2px solid '+(isPast?'var(--teal)':isCur?'var(--blue)':'var(--border2)')+'"></div>':'<div style="width:6px;height:6px;border-radius:50%;background:var(--border)"></div>')+'</div>';
+    if(!byMonth[i].length){cols+='<div></div>';continue;}
+    let col2='';
+    byMonth[i].forEach(ev=>{
+      const done=ev.status==='已校驗'||ev.status==='已保養';
+      const tc=done?'var(--teal)':isPast?'var(--amber)':'var(--text2)';
+      const bg=done?'var(--teal-light)':isPast?'var(--amber-light)':'var(--surface2)';
+      const bd=done?'rgba(13,122,95,0.2)':isPast?'rgba(156,93,10,0.2)':'var(--border)';
+      col2+='<div style="background:'+bg+';border-radius:var(--radius-sm);padding:5px 6px;border:0.5px solid '+bd+';margin-bottom:4px">'
+        +'<div style="font-size:11px;font-weight:600;color:'+tc+';line-height:1.3">'+ev.name+'</div>'
+        +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+(ev.cost>0?'NT$'+ev.cost.toLocaleString():'—')+'</div>'
+        +'<div style="font-size:10px;color:'+tc+';margin-top:2px">'+ev.status+'</div>'
+        +'</div>';
+    });
+    cols+='<div style="padding:0 2px">'+col2+'</div>';
+  }
+  container.innerHTML='<div style="overflow-x:auto"><div style="min-width:900px">'
+    +'<div style="display:grid;grid-template-columns:repeat(12,1fr);border-bottom:2px solid var(--blue)">'+hdr+'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(12,1fr);border-bottom:1px solid var(--border);margin-bottom:8px">'+dots+'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(12,1fr);align-items:start">'+cols+'</div>'
+    +'<div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></div>'+(()=>{const _d=new Date();const m=_d.getMonth()+1;const day=_d.getDate();return'<span style="font-size:11px;color:var(--blue);font-weight:500">今天：'+_d.getFullYear()+'/'+(m<10?'0':'')+m+'/'+(day<10?'0':'')+day+'</span>';})()+''
+    +'<div style="margin-left:auto;display:flex;gap:12px">'
+    +'<span style="font-size:11px;color:var(--teal);display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:var(--teal-light)"></div>已完成</span>'
+    +'<span style="font-size:11px;color:var(--amber);display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber-light)"></div>未完成（已過）</span>'
+    +'<span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:var(--surface2)"></div>待執行</span>'
+    +'</div></div></div></div>';
+}
+
+
+/* ── CONSUMABLES ── */
+const consumables2026 = [
+  {id:1,item:'液態氮',qty:1,vendor:'信華氣體',cost:1050,reqDate:'2025-12-30',orderDate:'2026-01-01',accDate:'2026-01-05',person:'Sam',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:2,item:'硬化劑',qty:1,vendor:'汎達',cost:5250,reqDate:'2026-01-14',orderDate:'2026-01-14',accDate:'2026-01-20',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:3,item:'灌膠模(圓)',qty:1,vendor:'汎達',cost:3098,reqDate:'2026-01-14',orderDate:'2026-01-14',accDate:'2026-01-20',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:4,item:'夾鏈袋(0/1/2/3/4)',qty:24,vendor:'蝦皮',cost:202,reqDate:'2026-01-20',orderDate:'2026-01-20',accDate:'2026-01-21',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:5,item:'3號電池',qty:3,vendor:'實體店面',cost:477,reqDate:'2026-03-07',orderDate:'2026-03-07',accDate:'2026-03-11',person:'Leo',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:6,item:'外接硬碟(8TB)',qty:1,vendor:'PC home',cost:7421,reqDate:'2026-03-04',orderDate:'2026-03-04',accDate:'2026-03-11',person:'Sam',purpose:'工具採購',ordered:true,accounted:true},
+  {id:7,item:'充電電池',qty:1,vendor:'PC home',cost:2691,reqDate:'2026-03-16',orderDate:'2026-03-16',accDate:'2026-03-16',person:'Leo',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:8,item:'液態氮',qty:1,vendor:'信華氣體',cost:1050,reqDate:'2026-03-12',orderDate:'2026-03-13',accDate:'2026-03-30',person:'Sam',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:9,item:'液態氮',qty:1,vendor:'信華氣體',cost:1050,reqDate:'2026-04-15',orderDate:'2026-04-10',accDate:'2026-04-15',person:'Leo',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:10,item:'電阻(Vimal實驗)',qty:10,vendor:'RS',cost:275,reqDate:'2026-04-21',orderDate:'2026-04-27',accDate:'2026-04-29',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:11,item:'物品籃',qty:1,vendor:'五金行',cost:113,reqDate:'2026-05-10',orderDate:'2026-05-10',accDate:'2026-05-12',person:'Sam',purpose:'工具採購',ordered:true,accounted:true},
+  {id:12,item:'液態氮',qty:1,vendor:'信華氣體',cost:1050,reqDate:'2026-05-05',orderDate:'2026-05-07',accDate:'2026-05-12',person:'Sam',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:13,item:'雙面膠',qty:4,vendor:'五金行',cost:90,reqDate:'2026-05-12',orderDate:'2026-05-14',accDate:'2026-05-14',person:'Sam',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:14,item:'實驗鑷子',qty:6,vendor:'蝦皮',cost:450,reqDate:'2026-05-25',orderDate:'2026-05-25',accDate:'2026-05-27',person:'Eloise',purpose:'工具採購',ordered:true,accounted:true},
+  {id:15,item:'手套',qty:5,vendor:'蝦皮',cost:1600,reqDate:'2026-05-25',orderDate:'2026-05-25',accDate:'2026-06-09',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:16,item:'砂紙80',qty:1,vendor:'汎達',cost:1523,reqDate:'2026-06-01',orderDate:'2026-06-01',accDate:'2026-06-06',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:17,item:'砂紙180',qty:1,vendor:'汎達',cost:997,reqDate:'2026-06-01',orderDate:'2026-06-01',accDate:'2026-06-06',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:18,item:'砂紙2000',qty:1,vendor:'汎達',cost:1943,reqDate:'2026-06-01',orderDate:'2026-06-01',accDate:'2026-06-06',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:19,item:'鑽石拋光液',qty:2,vendor:'汎達',cost:8925,reqDate:'2026-06-01',orderDate:'2026-06-01',accDate:'2026-06-06',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:20,item:'氧化鋁拋光液',qty:1,vendor:'汎達',cost:4777,reqDate:'2026-06-01',orderDate:'2026-06-01',accDate:'2026-06-06',person:'Eloise',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:21,item:'液態氮',qty:1,vendor:'信華氣體',cost:1050,reqDate:'2026-06-09',orderDate:'2026-06-09',accDate:'2026-06-09',person:'Sam',purpose:'耗材補充',ordered:true,accounted:true},
+  {id:22,item:'焊槍頭',qty:null,vendor:'',cost:0,reqDate:'',orderDate:'',accDate:'',person:'Leo',purpose:'耗材補充',ordered:false,accounted:false},
+  {id:23,item:'單芯線',qty:null,vendor:'',cost:0,reqDate:'',orderDate:'',accDate:'',person:'Leo',purpose:'耗材補充',ordered:false,accounted:false},
+  {id:24,item:'液態氮',qty:2,vendor:'',cost:0,reqDate:'',orderDate:'',accDate:'',person:'Sam',purpose:'耗材補充',ordered:false,accounted:false},
+];
+
+const consumablesCatalog = [
+  {cat:'設備',item:'鑽石刀片',model:'11-4247',unit:'片',price:36150,vendor:'汎達科技 陳若維Kevin / 0900-018951 / kevin_chen@pentad.com.tw',note:'備品1'},
+  {cat:'設備',item:'液態氮',model:'',unit:'10L',price:1050,vendor:'信華氣體 / 03-3502288 / service@sh-gas.com.tw',note:''},
+  {cat:'設備',item:'燈絲',model:'MA11308(04)',unit:'12pcs/盒',price:0,vendor:'捷東 張奕翔 / 0962-011-714 / jiedong@jiedong.com.tw',note:'備品15pcs，一年2顆'},
+  {cat:'設備',item:'碳膠帶',model:'05072-AB',unit:'卷',price:0,vendor:'捷東 張奕翔 / 0962-011-715 / jiedong@jiedong.com.tw',note:'備品2'},
+  {cat:'設備',item:'鍍白金靶材',model:'',unit:'',price:0,vendor:'捷東 張奕翔 / 0962-011-716 / jiedong@jiedong.com.tw',note:'無備品'},
+  {cat:'設備',item:'金屬拋光膏',model:'',unit:'100ml',price:0,vendor:'捷東 張奕翔 / 0962-011-717 / jiedong@jiedong.com.tw',note:''},
+  {cat:'電性',item:'錫絲',model:'無鉛0.8mm 錫96.5%銀3%銅0.5%',unit:'1kg',price:2380,vendor:'百電企業 陳威洋 / 02-27092072 / sales@wenpor.com.tw',note:''},
+  {cat:'切片用品',item:'鑲埋模具',model:'20-8180',unit:'12/pk',price:0,vendor:'汎達科技 陳若維Kevin / 0900-018950 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'冷鑲埋壓克力粉',model:'20-3566',unit:'2.3kg/桶',price:15500,vendor:'汎達科技 陳若維Kevin / 0900-018951 / kevin_chen@pentad.com.tw',note:'雅沃城'},
+  {cat:'切片用品',item:'硬化劑(壓克力專用)',model:'20-3568',unit:'1.9L/瓶',price:5000,vendor:'汎達科技 陳若維Kevin / 0900-018952 / kevin_chen@pentad.com.tw',note:'雅沃城'},
+  {cat:'切片用品',item:'樹脂',model:'20-3430-032',unit:'0.95L/瓶',price:6825,vendor:'汎達科技 陳若維Kevin / 0900-018953 / kevin_chen@pentad.com.tw',note:'一組6825'},
+  {cat:'切片用品',item:'硬化劑(樹脂專用)',model:'20-3432-008',unit:'0.24L/瓶',price:0,vendor:'汎達科技 陳若維Kevin / 0900-018954 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'脫模劑',model:'20-8186-004',unit:'120ml/瓶',price:0,vendor:'汎達科技 陳若維Kevin / 0900-018955 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'瞬間接著劑(長春)',model:'',unit:'20g/瓶',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'切片用品',item:'鑲埋夾具',model:'204100-100',unit:'100/pk',price:0,vendor:'汎達科技 陳若維Kevin / 0900-018955 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'切割冷卻液',model:'10-6001',unit:'1L/瓶',price:0,vendor:'汎達科技 陳若維Kevin / 0900-018956 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'3M砂紙(P180)',model:'P180',unit:'50片',price:850,vendor:'汎達科技 陳若維Kevin / 0900-018948 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'3M砂紙(P320)',model:'P320',unit:'50片',price:850,vendor:'汎達科技 陳若維Kevin / 0900-018949 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'3M砂紙(P600)',model:'P600',unit:'50片',price:850,vendor:'汎達科技 陳若維Kevin / 0900-018950 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'3M砂紙(P1200)',model:'P1200',unit:'50片',price:950,vendor:'汎達科技 陳若維Kevin / 0900-018951 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'砂紙(1200/P2500,8um)',model:'16-08-1200',unit:'100片/盒',price:9800,vendor:'汎達科技 陳若維Kevin / 0900-018955 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'砂紙(P4000,5um)',model:'30-08-4000',unit:'100片/盒',price:9800,vendor:'汎達科技 陳若維Kevin / 0900-018956 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'拋光布(MicroCloth)',model:'40-7218',unit:'10片/盒',price:3675,vendor:'汎達科技 陳若維Kevin / 0900-018957 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'多晶鑽石懸浮液(1um)',model:'40-6630 藍色',unit:'0.24L/瓶',price:3850,vendor:'汎達科技 陳若維Kevin / 0900-018958 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'氧化鋁拋光懸浮液(0.05um)',model:'40-6377-032',unit:'0.95L/瓶',price:4778,vendor:'汎達科技 陳若維Kevin / 0900-018-959 / kevin_chen@pentad.com.tw',note:''},
+  {cat:'切片用品',item:'研磨拋光機用塑膠內襯',model:'49-1005',unit:'1個',price:945,vendor:'',note:''},
+  {cat:'其他',item:'手套',model:'H1167(紫色)',unit:'100入',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'其他',item:'無塵紙',model:'Kimtech',unit:'280抽',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'其他',item:'FTIR樣品瓶',model:'DG74500-10020 茶色',unit:'100瓶',price:0,vendor:'龍洋容器',note:''},
+  {cat:'其他',item:'滴管',model:'',unit:'',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'其他',item:'靜電衣',model:'黃色格子',unit:'1pcs',price:350,vendor:'展其峰 林珮紅 Jenny / 0955-435033 / jenny.lin@pentad.com.tw',note:''},
+  {cat:'其他',item:'靜電鞋',model:'白色網狀鞋PU底',unit:'1pair',price:280,vendor:'展其峰 林珮紅 Jenny / 0955-435034 / jenny.lin@pentad.com.tw',note:''},
+  {cat:'其他',item:'靜電帽',model:'黃色格子',unit:'1pcs',price:150,vendor:'展其峰 林珮紅 Jenny / 0955-435035 / jenny.lin@pentad.com.tw',note:''},
+  {cat:'其他',item:'防靜電止滑手套',model:'-',unit:'10pair/bag',price:135,vendor:'展其峰 林珮紅 Jenny / 0955-435036 / jenny.lin@pentad.com.tw',note:''},
+  {cat:'其他',item:'靜電腕帶',model:'水藍可調式帶附15線',unit:'1set',price:160,vendor:'展其峰 林珮紅 Jenny / 0955-435037 / jenny.lin@pentad.com.tw',note:''},
+  {cat:'文具',item:'雙面膠',model:'-',unit:'-',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'膠帶',model:'-',unit:'-',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'黏土',model:'-',unit:'-',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'標籤貼紙',model:'-',unit:'-',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 0號',model:'6cm*4cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 2號',model:'8.5cm*6cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 4號',model:'12cm*8.5cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 6號',model:'17cm*12cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 8號',model:'24cm*17cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+  {cat:'文具',item:'PE夾鏈袋 10號',model:'34cm*24cm',unit:'100pcs',price:0,vendor:'自行購買後報帳',note:''},
+];
+
+const CONSUMBALE_BUDGET = 120000;
+const CONSUMABLE_Q_BUDGET = 30000;
+
+function filterConsumables(){
+  // Get active filters
+  const activeQ = document.querySelector('.con-filter.active')?.dataset.fq || '全部';
+  const activeP = document.querySelector('.con-filter-p.active')?.dataset.fp || '全部';
+  const activeT = document.querySelector('.con-filter-t.active')?.dataset.ft || '全部';
+  const activeS = document.querySelector('.con-filter-s.active')?.dataset.fs || '全部';
+
+  // Update active state of clicked button
+  const clicked = event?.target;
+  if(clicked && clicked.classList.contains('filter-chip')){
+    const group = [...clicked.classList].find(c=>c.startsWith('con-filter'));
+    document.querySelectorAll('.'+group).forEach(el=>el.classList.remove('active'));
+    clicked.classList.add('active');
+  }
+
+  // Re-read after update
+  const fq = document.querySelector('.con-filter.active')?.dataset.fq || '全部';
+  const fp = document.querySelector('.con-filter-p.active')?.dataset.fp || '全部';
+  const ft = document.querySelector('.con-filter-t.active')?.dataset.ft || '全部';
+  const fs = document.querySelector('.con-filter-s.active')?.dataset.fs || '全部';
+
+  const rows = document.querySelectorAll('.con-row');
+  let visible = 0;
+  rows.forEach(row=>{
+    const q = row.dataset.q;
+    const p = row.dataset.p;
+    const t = row.dataset.t;
+    const ord = row.dataset.ordered;
+    const acc = row.dataset.accounted;
+    let show = true;
+    if(fq!=='全部' && q!==fq) show=false;
+    if(fp!=='全部' && p!==fp) show=false;
+    if(ft!=='全部' && t!==ft) show=false;
+    if(fs==='已下單' && ord!=='true') show=false;
+    if(fs==='未下單' && ord!=='false') show=false;
+    if(fs==='已報帳' && acc!=='true') show=false;
+    if(fs==='未報帳' && acc!=='false') show=false;
+    row.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  const countEl = document.getElementById('con-count');
+  if(countEl) countEl.textContent = visible + ' 筆';
+}
+
+function renderConsumables(){
+  // Quarter calculation based on reqDate
+  function getQ(dateStr){
+    if(!dateStr) return '—';
+    const m = new Date(dateStr).getMonth();
+    return m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+  }
+
+  const ordered = consumables2026.filter(r=>r.ordered);
+  const pending = consumables2026.filter(r=>!r.ordered);
+  const accounted = consumables2026.filter(r=>r.accounted);
+  const totalCost = ordered.reduce((s,r)=>s+r.cost,0);
+  const budget = 120000;
+  const remaining = budget - totalCost;
+
+  // Q breakdown
+  const qCost = {Q1:0,Q2:0,Q3:0,Q4:0};
+  ordered.forEach(r=>{ if(r.reqDate){ const q=getQ(r.reqDate); if(qCost[q]!==undefined) qCost[q]+=r.cost; }});
+
+  const cats = [...new Set(consumablesCatalog.map(c=>c.cat))];
+  const catColors = {設備:'elec',切片用品:'mat',電性:'elec',其他:'na',文具:'na'};
+
+  return`<div class="page-hd">
+  <div class="page-hd-left"><h1><i class="ti ti-package"></i>耗材管理</h1><p>2026 年度採購紀錄與常備耗材目錄</p></div>
+  <button class="btn btn-primary" onclick="openAddConsumable()"><i class="ti ti-plus"></i> 新增採購</button>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem">
+  <div class="card" style="padding:1rem"><div class="stat-label">年度預算</div><div class="stat-val blue" style="font-size:22px">NT$120,000</div><div style="font-size:11px;color:var(--text3)">每季 NT$30,000</div></div>
+  <div class="card" style="padding:1rem"><div class="stat-label">已花費</div><div class="stat-val amber" style="font-size:22px">NT$${totalCost.toLocaleString()}</div><div style="font-size:11px;color:var(--text3)">${Math.round(totalCost/budget*100)}% 已使用</div></div>
+  <div class="card" style="padding:1rem"><div class="stat-label">剩餘預算</div><div class="stat-val ${remaining<0?'red':'teal'}" style="font-size:22px">NT$${Math.abs(remaining).toLocaleString()}</div><div style="font-size:11px;color:var(--text3)">${remaining<0?'⚠ 超支':'尚餘'}</div></div>
+  <div class="card" style="padding:1rem"><div class="stat-label">待下單</div><div class="stat-val red" style="font-size:22px">${pending.length}</div><div style="font-size:11px;color:var(--text3)">筆未下單</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-chart-bar"></i> 每季預算使用</span></div>
+    ${['Q1','Q2','Q3','Q4'].map(q=>{
+      const pct=Math.min(Math.round(qCost[q]/30000*100),100);
+      const over=qCost[q]>30000;
+      return'<div style="margin-bottom:12px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'
+        +'<span style="font-weight:500">'+q+'</span>'
+        +'<span style="color:var(--text2)">NT$'+qCost[q].toLocaleString()+' <span style="color:var(--text3)">/ NT$30,000</span>'+(over?' <span style="color:var(--red)">⚠</span>':'')+'</span>'
+        +'</div>'
+        +'<div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden">'
+        +'<div style="height:100%;width:'+pct+'%;background:'+(over?'var(--red)':qCost[q]>0?'var(--blue)':'var(--border)')+';border-radius:4px"></div>'
+        +'</div></div>';
+    }).join('')}
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-clock"></i> 待下單項目</span></div>
+    ${pending.length===0
+      ?'<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">目前無待下單項目 ✓</div>'
+      :pending.map(r=>'<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)">'
+        +'<div style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>'
+        +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+r.item+'</div>'
+        +(r.qty?'<div style="font-size:11px;color:var(--text3)">數量：'+r.qty+'</div>':'')
+        +'</div>'
+        +'<span style="font-size:11px;color:var(--text3)">'+r.person+'</span>'
+        +'</div>').join('')
+    }
+  </div>
+</div>
+
+<div class="card section-gap">
+  <div class="card-hd"><span class="card-title"><i class="ti ti-list-details"></i> 2026 採購紀錄</span>
+    <span style="font-size:11px;color:var(--text3);margin-left:auto" id="con-count"></span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:var(--radius-md)">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">季度</span>
+      ${['全部','Q1','Q2','Q3','Q4'].map(q=>'<button onclick="filterConsumables()" data-fq="'+q+'" class="filter-chip con-filter'+(q==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+q+'</button>').join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">需求人</span>
+      ${['全部',...new Set(consumables2026.map(r=>r.person).filter(Boolean))].map(p=>'<button onclick="filterConsumables()" data-fp="'+p+'" class="filter-chip con-filter-p'+(p==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+p+'</button>').join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">目的</span>
+      ${['全部','耗材補充','工具採購'].map(t=>'<button onclick="filterConsumables()" data-ft="'+t+'" class="filter-chip con-filter-t'+(t==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+t+'</button>').join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">狀態</span>
+      ${['全部','已下單','未下單','已報帳','未報帳'].map(s=>'<button onclick="filterConsumables()" data-fs="'+s+'" class="filter-chip con-filter-s'+(s==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+s+'</button>').join('')}
+    </div>
+  </div>
+  <div class="tbl-wrap" style="border:none;border-radius:0;box-shadow:none"><table style="table-layout:fixed;width:100%">
+  <thead><tr>
+    <th style="width:160px">採購項目</th>
+    <th style="width:45px">數量</th>
+    <th style="width:90px">購買地點</th>
+    <th style="width:90px">金額(含稅)</th>
+    <th style="width:50px">季度</th>
+    <th style="width:65px">需求人</th>
+    <th style="width:80px">採購目的</th>
+    <th style="width:90px">報帳日期</th>
+    <th style="width:55px">已下單</th>
+    <th style="width:55px">報帳</th>
+    <th style="width:90px">操作</th>
+  </tr></thead>
+  <tbody>${consumables2026.map(r=>`<tr class="con-row" data-q="${r.reqDate?getQ(r.reqDate):'—'}" data-p="${r.person||''}" data-t="${r.purpose||''}" data-ordered="${r.ordered}" data-accounted="${r.accounted}">
+    <td class="td-name">${r.item}</td>
+    <td style="font-size:12px">${r.qty||'—'}</td>
+    <td style="font-size:12px">${r.vendor||'—'}</td>
+    <td style="font-size:12px;font-weight:500">${r.cost?'NT$'+r.cost.toLocaleString():'—'}</td>
+    <td style="font-size:11px;text-align:center">${r.reqDate?getQ(r.reqDate):'—'}</td>
+    <td style="font-size:12px">${r.person}</td>
+    <td><span class="badge ${r.purpose==='工具採購'?'badge-elec':'badge-na'}" style="font-size:10px">${r.purpose||'—'}</span></td>
+    <td style="font-size:11px">${r.accDate?fd(r.accDate):'—'}</td>
+    <td style="text-align:center">${r.ordered?'<i class="ti ti-check" style="color:var(--teal)"></i>':'<i class="ti ti-x" style="color:var(--text3)"></i>'}</td>
+    <td style="text-align:center">${r.accounted?'<i class="ti ti-check" style="color:var(--teal)"></i>':'<i class="ti ti-x" style="color:var(--text3)"></i>'}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-sm btn-ghost" onclick="openEditConsumable(${r.id})" title="編輯"><i class="ti ti-edit"></i></button>
+      <button class="btn btn-sm btn-ghost btn-danger" onclick="deleteConsumable(${r.id})" title="刪除"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`).join('')}</tbody>
+  </table></div>
+</div>
+
+<div class="card" style="margin-top:1.25rem">
+  <div class="card-hd">
+    <div class="collapsible-hd" onclick="toggleCatalog()" style="flex:1;display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title"><i class="ti ti-package"></i> 常備耗材目錄 <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">${consumablesCatalog.length} 項</span></span>
+      <i class="ti ti-chevron-down chevron" id="catalog-chevron"></i>
+    </div>
+    <button class="btn btn-sm" style="margin-left:12px;flex-shrink:0" onclick="openAddCatalogItem()"><i class="ti ti-plus"></i> 新增耗材</button>
+  </div>
+  <div class="collapsible-body collapsed" id="catalog-body">
+  ${cats.map(cat=>{
+    const items=consumablesCatalog.filter(c=>c.cat===cat);
+    const cc=catColors[cat]||'na';
+    return'<div style="margin-bottom:1.25rem">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="badge badge-'+cc+'">'+cat+'</span></div>'
+      +'<div class="tbl-wrap" style="border:none;border-radius:var(--radius-md);box-shadow:none;border:1px solid var(--border)">'
+      +'<table style="table-layout:fixed;width:100%"><thead><tr>'
+      +'<th style="width:180px">項目</th><th style="width:120px">型號</th><th style="width:80px">單位</th><th style="width:85px">參考價格</th><th>購買窗口</th><th style="width:80px">備註</th>'
+      +'</tr></thead><tbody>'
+      +items.map(i=>'<tr>'
+        +'<td style="font-weight:500;font-size:13px">'+i.item+'</td>'
+        +'<td style="font-size:11px;font-family:var(--mono);color:var(--text2)">'+i.model+'</td>'
+        +'<td style="font-size:12px">'+i.unit+'</td>'
+        +'<td style="font-size:12px;font-weight:500">'+(i.price?'NT$'+i.price.toLocaleString():'—')+'</td>'
+        +'<td style="font-size:11px;white-space:normal;line-height:1.5;color:var(--text2)">'+i.vendor+'</td>'
+        +'<td style="font-size:11px;color:var(--text3)">'+i.note+'</td>'
+        +'</tr>').join('')
+      +'</tbody></table></div></div>';
+  }).join('')}
+  </div>
+</div>`;
+}
+
+
+/* ── BOOKING ── */
+let bookings = [
+  {id:2001, date:'2026-06-10', unit:'可靠度中心', contact:'蕭志祥', purpose:'高溫老化測試', device:'Chamber'},
+  {id:2002, date:'2026-06-11', unit:'可靠度中心', contact:'蕭志祥', purpose:'高溫老化測試', device:'Chamber'},
+  {id:2003, date:'2026-06-18', unit:'製程整合部', contact:'王小明', purpose:'環境應力測試', device:'Chamber'},
+  {id:2004, date:'2026-06-24', unit:'產品驗證部', contact:'陳大華', purpose:'溫度循環測試', device:'Chamber'},
+  {id:2005, date:'2026-06-25', unit:'產品驗證部', contact:'陳大華', purpose:'溫度循環測試', device:'Chamber'},
+];
+
+function getBookingStatus(dateStr){
+  const today = new Date();today.setHours(0,0,0,0);
+  const d = new Date(dateStr);
+  if(d < today) return 'past';
+  if(d.toDateString() === today.toDateString()) return 'today';
+  return 'future';
+}
+
+/* ── BOOKING DATA ── */
+let bookingData = [
+  {id:3001,device:'Chamber',owner:'蕭志祥',project:'高溫老化測試',start:'2026-01-15',end:'2026-01-20',samples:'PCBA x5',condition:'85°C / 85%RH, 168hr',type:'booking'},
+  {id:3002,device:'Chamber',owner:'維修/保養',project:'Chamber Q1 保養',start:'2026-02-24',end:'2026-02-24',samples:'',condition:'',type:'maint'},
+  {id:3003,device:'Chamber',owner:'製程整合部',project:'溫度循環驗證',start:'2026-03-10',end:'2026-03-20',samples:'Connector x10',condition:'-40°C ~ 125°C, 100 cycles',type:'booking'},
+  {id:3004,device:'Oven',owner:'產品驗證部',project:'壽命加速測試',start:'2026-02-01',end:'2026-02-14',samples:'Motor module x3',condition:'125°C, 500hr',type:'booking'},
+  {id:3005,device:'Oven',owner:'維修/保養',project:'Oven 定期保養',start:'2026-03-15',end:'2026-03-15',samples:'',condition:'',type:'maint'},
+  {id:3006,device:'Chamber',owner:'維修/保養',project:'Chamber Q2 保養',start:'2026-04-08',end:'2026-04-08',samples:'',condition:'',type:'maint'},
+  {id:3007,device:'Chamber',owner:'熊夢平',project:'材料熱穩定性測試',start:'2026-05-05',end:'2026-06-15',samples:'Polymer sample x8',condition:'60°C, 1000hr',type:'booking'},
+  {id:3008,device:'Oven',owner:'陳柏丞',project:'電性元件老化',start:'2026-05-18',end:'2026-05-30',samples:'Capacitor x20',condition:'105°C, 250hr',type:'booking'},
+  {id:3009,device:'Chamber',owner:'維修/保養',project:'Chamber Q3 保養',start:'2026-09-01',end:'2026-09-01',samples:'',condition:'',type:'maint'},
+  {id:3010,device:'Oven',owner:'維修/保養',project:'Oven 半年保養',start:'2026-09-10',end:'2026-09-10',samples:'',condition:'',type:'maint'},
+  {id:3011,device:'Chamber',owner:'維修/保養',project:'Chamber Q4 保養',start:'2026-12-01',end:'2026-12-01',samples:'',condition:'',type:'maint'},
+];
+let bookingEditId = null;
+
+function renderBookingFull(){
+  const year = 2026;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const totalDays = daysInMonth.reduce((s,d)=>s+d,0);
+
+  function dayOfYear(dateStr){
+    const d = new Date(dateStr);
+    const start = new Date(year+'-01-01');
+    return Math.floor((d-start)/86400000)+1;
+  }
+  function pct(day){ return ((day-1)/totalDays*100).toFixed(3)+'%'; }
+  function pctWidth(start,end){
+    const s=dayOfYear(start), e=dayOfYear(end);
+    return (((e-s+1)/totalDays)*100).toFixed(3)+'%';
+  }
+
+  const today = new Date();today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const todayDoy = dayOfYear(todayStr);
+  const todayPct = ((todayDoy-1)/totalDays*100).toFixed(3);
+
+  // Auto-pull Chamber maintenance from chamberMaint
+  const maintEntries = chamberMaint
+    .filter(r=>r.maintScheduled)
+    .map(r=>({id:'cm-'+r.id,device:'Chamber',owner:'維修/保養',project:'Chamber 保養 '+r.quarter,start:r.maintScheduled,end:r.maintScheduled,samples:'',condition:'',type:'maint'}));
+
+  // Auto-pull Oven calibration from EQ (Oven = id not in EQ, so use calScheduled from relevant EQ)
+  // Oven is a separate device tracked in bookingData; pull cal entries from bookingData type='cal'
+  const calEntries = bookingData.filter(b=>b.type==='cal'&&b.device==='Oven');
+
+  // Merge: bookingData (manual bookings) + auto maint + auto cal
+  const allBookings = [
+    ...bookingData.filter(b=>b.type==='booking'),
+    ...maintEntries,
+    ...calEntries
+  ];
+
+  const chamberBookings = allBookings.filter(b=>b.device==='Chamber').sort((a,b)=>a.start.localeCompare(b.start));
+  const ovenBookings = allBookings.filter(b=>b.device==='Oven').sort((a,b)=>a.start.localeCompare(b.start));
+
+  // Month header positions
+  let monthHeaders = '';
+  let dayOffset = 0;
+  months.forEach((m,i)=>{
+    const left = (dayOffset/totalDays*100).toFixed(3);
+    const width = (daysInMonth[i]/totalDays*100).toFixed(3);
+    monthHeaders += '<div style="position:absolute;left:'+left+'%;width:'+width+'%;text-align:center;font-size:11px;font-weight:600;color:var(--text2);border-right:0.5px solid var(--border)">'+m+'</div>';
+    dayOffset += daysInMonth[i];
+  });
+
+  function renderRow(bList, label, color, lightColor){
+    const bars = bList.map(b=>{
+      const left = pct(dayOfYear(b.start));
+      const width = pctWidth(b.start,b.end);
+      const isMaint = b.type==='maint';
+      const bg = isMaint?'var(--amber)':color;
+      const textC = '#fff';
+      return '<div style="position:absolute;left:'+left+';width:'+width+';height:28px;top:50%;transform:translateY(-50%);background:'+bg+';border-radius:4px;cursor:pointer;display:flex;align-items:center;padding:0 6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);z-index:2" '
+        +'onclick="openBookingDetail('+b.id+')" title="'+b.project+' ('+b.start+' ~ '+b.end+')">'
+        +'<span style="font-size:10px;font-weight:600;color:'+textC+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(isMaint?'🔧 ':'')+b.project+'</span>'
+        +'</div>';
+    }).join('');
+
+    return '<div style="display:flex;align-items:stretch;margin-bottom:4px">'
+      +'<div style="width:90px;flex-shrink:0;background:'+color+';border-radius:var(--radius-md) 0 0 var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;color:#fff">'
+      +'<div style="font-size:11px;font-weight:600;text-align:center">'+label+'</div>'
+      +'</div>'
+      +'<div style="flex:1;position:relative;background:'+lightColor+';border-radius:0 var(--radius-md) var(--radius-md) 0;height:44px;border:1px solid var(--border);border-left:none">'
+      // today line
+      +'<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;width:1.5px;background:var(--red);z-index:3;pointer-events:none"></div>'
+      + bars
+      +'</div>'
+      +'</div>';
+  }
+
+  const chamberRow = renderRow(chamberBookings,'Chamber 環境試驗箱','#185FA5','#F0F5FF');
+  const ovenRow = renderRow(ovenBookings,'Oven 烤箱','#0D7A5F','#F0FAF5');
+
+  const upcoming = bookingData.filter(b=>b.end>=todayStr&&b.type==='booking').sort((a,b)=>a.start.localeCompare(b.start)).slice(0,5);
+  const upcomingMaintGantt = maintEntries.filter(r=>r.end>=todayStr).sort((a,b)=>a.start.localeCompare(b.start)).slice(0,5);
+  const chamberBusy = bookingData.filter(b=>b.device==='Chamber'&&b.start<=todayStr&&b.end>=todayStr);
+  const ovenBusy = bookingData.filter(b=>b.device==='Oven'&&b.start<=todayStr&&b.end>=todayStr);
+
+  return`<div class="page-hd">
+  <div class="page-hd-left"><h1><i class="ti ti-calendar-event"></i>設備預約</h1><p>Chamber 環境試驗箱 · Oven 烤箱 設備借用管理 — 2026 年度</p></div>
+  <button class="btn btn-primary" onclick="openBookingAdd('booking')"><i class="ti ti-plus"></i> 新增預約</button>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem">
+  <div class="card" style="padding:1rem">
+    <div class="stat-label">Chamber 今日</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+      <div style="width:9px;height:9px;border-radius:50%;background:${chamberBusy.length?'var(--red)':'var(--teal)'}"></div>
+      <div style="font-size:15px;font-weight:600;color:${chamberBusy.length?'var(--red)':'var(--teal)'}">${chamberBusy.length?'使用中':'閒置'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">${chamberBusy.length?chamberBusy[0].owner+' · '+chamberBusy[0].project:'可供借用'}</div>
+  </div>
+  <div class="card" style="padding:1rem">
+    <div class="stat-label">Oven 今日</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+      <div style="width:9px;height:9px;border-radius:50%;background:${ovenBusy.length?'var(--red)':'var(--teal)'}"></div>
+      <div style="font-size:15px;font-weight:600;color:${ovenBusy.length?'var(--red)':'var(--teal)'}">${ovenBusy.length?'使用中':'閒置'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">${ovenBusy.length?ovenBusy[0].owner+' · '+ovenBusy[0].project:'可供借用'}</div>
+  </div>
+  <div class="card" style="padding:1rem">
+    <div class="stat-label">Chamber 年度預約</div>
+    <div class="stat-val blue" style="font-size:22px;margin:4px 0">${bookingData.filter(b=>b.device==='Chamber'&&b.type==='booking').length}</div>
+    <div style="font-size:11px;color:var(--text3)">筆</div>
+  </div>
+  <div class="card" style="padding:1rem">
+    <div class="stat-label">Oven 年度預約</div>
+    <div class="stat-val teal" style="font-size:22px;margin:4px 0">${bookingData.filter(b=>b.device==='Oven'&&b.type==='booking').length}</div>
+    <div style="font-size:11px;color:var(--text3)">筆</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.25rem">
+  <div class="card-hd"><span class="card-title"><i class="ti ti-chart-gantt"></i> 2026 年度甘特圖</span>
+    <div style="display:flex;gap:12px;font-size:11px;align-items:center">
+      <span style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:4px;border-radius:2px;background:#185FA5"></div>Chamber 借用</span>
+      <span style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:4px;border-radius:2px;background:#0D7A5F"></div>Oven 校驗</span>
+      <span style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:4px;border-radius:2px;background:var(--amber)"></div>保養</span>
+      <span style="display:flex;align-items:center;gap:4px"><div style="width:1.5px;height:12px;background:var(--red)"></div>今天</span>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <div style="min-width:700px">
+      <div style="display:flex;margin-bottom:4px">
+        <div style="width:90px;flex-shrink:0"></div>
+        <div style="flex:1;position:relative;height:22px">${monthHeaders}</div>
+      </div>
+      <div style="display:flex;margin-bottom:2px">
+        <div style="width:90px;flex-shrink:0"></div>
+        <div style="flex:1;position:relative;height:6px">
+          ${months.map((_,i)=>{
+            let d=0; for(let j=0;j<i;j++) d+=daysInMonth[j];
+            return '<div style="position:absolute;left:'+(d/totalDays*100).toFixed(2)+'%;width:'+(daysInMonth[i]/totalDays*100).toFixed(2)+'%;height:6px;background:'+(i%2===0?'#185FA5':'#2B7BC2')+';opacity:0.7"></div>';
+          }).join('')}
+          ${months.map((_,i)=>{
+            let d=0; for(let j=0;j<i;j++) d+=daysInMonth[j];
+            return '<div style="position:absolute;left:'+(d/totalDays*100).toFixed(2)+'%;width:'+(daysInMonth[i]/totalDays*100).toFixed(2)+'%;height:3px;top:3px;background:'+(i%2===0?'#1EB85A':'#25D468')+';opacity:0.8"></div>';
+          }).join('')}
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+        ${chamberRow}
+        ${ovenRow}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.25rem">
+  <div class="card-hd"><span class="card-title"><i class="ti ti-clock-check"></i> 最近可預約空檔</span></div>
+  ${(()=>{
+    const today = new Date();today.setHours(0,0,0,0);
+    const todayStr = today.toISOString().split('T')[0];
+    const endOfYear = new Date('2026-12-31');
+
+    function findNextSlots(device, maxSlots){
+      // Only consider bookings that overlap with today or future
+      const booked = allBookings
+        .filter(b=>b.device===device && new Date(b.end) >= today)
+        .map(b=>({ start: new Date(b.start), end: new Date(b.end) }))
+        .sort((a,b)=>a.start-b.start);
+
+      const slots = [];
+      let cursor = new Date(today); // start from today
+
+      for(let i=0;i<=booked.length;i++){
+        const nextBlock = booked[i] ? booked[i].start : new Date(endOfYear.getTime()+86400000);
+        // if this booking already started before today, skip ahead
+        if(booked[i] && booked[i].start <= today){
+          cursor = new Date(Math.max(cursor.getTime(), booked[i].end.getTime()+86400000));
+          continue;
+        }
+        const gapStart = new Date(cursor);
+        const gapEnd = new Date(nextBlock.getTime()-86400000);
+        if(gapEnd >= gapStart){
+          slots.push({start:gapStart, end:gapEnd});
+          if(slots.length >= maxSlots) break;
+        }
+        if(booked[i]) cursor = new Date(booked[i].end.getTime()+86400000);
+      }
+      return slots;
+    }
+
+    const fmt = d => (d.getMonth()+1)+'/'+ d.getDate();
+    const chamberSlots = findNextSlots('Chamber', 3);
+    const ovenSlots = findNextSlots('Oven', 3);
+
+    const renderSlots = (slots, color, lightColor) => {
+      if(!slots.length) return '<div style="font-size:12px;color:var(--text3)">目前全年無空檔</div>';
+      return slots.map((s,i)=>{
+        const days = Math.round((s.end-s.start)/86400000)+1;
+        const isFirst = i===0;
+        return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)">'
+          +'<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'
+          +'<div style="flex:1">'
+          +'<div style="font-size:13px;font-weight:'+(isFirst?'600':'400')+';color:'+(isFirst?color:'var(--text)')+'">'+fmt(s.start)+' ~ '+fmt(s.end)+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">共 '+days+' 天'+(isFirst?' · 最近空檔':'')+'</div>'
+          +'</div>'
+          +(isFirst?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:'+lightColor+';color:'+color+'">可預約</span>':'')
+          +'</div>';
+      }).join('');
+    };
+
+    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">'
+      +'<div>'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:#185FA5"></div>'
+      +'<span style="font-size:12px;font-weight:600;color:var(--text)">Chamber 環境試驗箱</span>'
+      +'</div>'
+      +renderSlots(chamberSlots,'#185FA5','var(--blue-light)')
+      +'</div>'
+      +'<div>'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:#0D7A5F"></div>'
+      +'<span style="font-size:12px;font-weight:600;color:var(--text)">Oven 烤箱</span>'
+      +'</div>'
+      +renderSlots(ovenSlots,'#0D7A5F','var(--teal-light)')
+      +'</div>'
+      +'</div>';
+  })()}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-list"></i> 近期預約</span></div>
+    ${upcoming.length===0
+      ?'<div class="empty"><i class="ti ti-calendar-off"></i><p>目前無近期預約</p></div>'
+      :upcoming.map(b=>{
+        const color=b.device==='Chamber'?'var(--blue)':'var(--teal)';
+        return'<div style="padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="openBookingDetail('+b.id+')">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+          +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:'+(b.device==='Chamber'?'var(--blue-light)':'var(--teal-light)')+';color:'+color+'">'+b.device+'</span>'
+          +'<span style="font-size:12px;font-weight:500;flex:1">'+b.project+'</span>'
+          +'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+b.owner+' · '+b.start+' ~ '+b.end+'</div>'
+          +'</div>';
+      }).join('')
+    }
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-tool"></i> 近期保養排程</span></div>
+    ${upcomingMaintGantt.length===0
+      ?'<div class="empty"><i class="ti ti-check"></i><p>近期無保養排程</p></div>'
+      :upcomingMaintGantt.map(b=>'<div style="padding:9px 0;border-bottom:0.5px solid var(--border)">'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+        +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--blue-light);color:var(--blue)">Chamber</span>'
+        +'<span style="font-size:12px;font-weight:500">'+b.project+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+fd(b.start)+' <span style="color:var(--amber)">（自保養管理同步）</span></div>'
+        +'</div>').join('')
+    }
+  </div>
+</div>`;
+}
+
+function openBookingAdd(type){
+  document.getElementById('modal-body').innerHTML =
+    '<h3>新增設備預約</h3>'
+    +'<div class="form-grid">'
+    +'<div class="fg full"><label>設備</label>'
+    +'<select id="bdev">'
+    +'<option value="Chamber">Chamber 環境試驗箱</option>'
+    +'<option value="Oven">Oven 烤箱</option>'
+    +'</select></div>'
+    +'<div class="fg"><label>借用單位</label><input type="text" id="bunit" placeholder="例：製程整合部"></div>'
+    +'<div class="fg"><label>借用人</label><input type="text" id="bperson" placeholder="例：王小明"></div>'
+    +'<div class="fg full"><label>專案名稱</label><input type="text" id="bproj" placeholder="例：高溫老化測試"></div>'
+    +'<div class="fg"><label>開始日期</label><input type="date" id="bstart"></div>'
+    +'<div class="fg"><label>結束日期</label><input type="date" id="bend"></div>'
+    +'<div class="fg full"><label>Test Samples / Products</label><input type="text" id="bsamples" placeholder="例：PCBA x5"></div>'
+    +'<div class="fg full"><label>Test Condition</label><input type="text" id="bcond" placeholder="例：85°C / 85%RH, 168hr"></div>'
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" id="bconfirm">確認</button>'
+    +'</div>';
+  openModal();
+  document.getElementById('bconfirm').onclick = function(){ saveBookingEntry('booking', document.getElementById('bdev').value); };
+}
+function updateDeviceNote(){
+  const dev = document.getElementById('bdev')?.value;
+  const note = document.getElementById('device-note');
+  if(!note) return;
+  if(dev==='Oven'){
+    note.style.display='block';
+    note.innerHTML='<i class="ti ti-info-circle" style="margin-right:4px"></i> Oven 主要用於校驗與高溫測試，請確認用途符合。';
+  } else {
+    note.style.display='none';
+  }
+}
+
+function saveBookingEntry(type, device){
+  device = device || 'Chamber';
+  const proj = document.getElementById('bproj')?.value.trim();
+  const unit = document.getElementById('bunit')?.value.trim()||'';
+  const person = document.getElementById('bperson')?.value.trim()||'';
+  const owner = type==='maint'?'維修/保養':'蕭志祥';
+  const start = document.getElementById('bstart').value;
+  const end = document.getElementById('bend').value;
+  const samples = document.getElementById('bsamples')?.value.trim()||'';
+  const cond = document.getElementById('bcond')?.value.trim()||'';
+  if(!proj||!start||!end||!unit||!person){ alert('請填寫所有必要欄位'); return; }
+  if(start>end){ alert('結束日期不能早於開始日期'); return; }
+  // Check conflict
+  const conflict = bookingData.find(b=>b.device===device&&!(b.end<start||b.start>end));
+  if(conflict){ alert('此區間與現有預約「'+conflict.project+'」衝突！'); return; }
+  bookingData.push({id:Date.now(),device,owner,project:proj,unit,person,start,end,samples,condition:cond,type});
+  bookingData.sort((a,b)=>a.start.localeCompare(b.start));
+  closeModal(); render();
+}
+
+function openBookingDetail(id){
+  const b = bookingData.find(x=>x.id===id);
+  if(!b) return;
+  const color=b.device==='Chamber'?'var(--blue)':'var(--teal)';
+  const isMaint=b.type==='maint';
+  document.getElementById('modal-body').innerHTML=
+    '<h3>'+b.project+'</h3>'
+    +'<div style="display:flex;gap:8px;margin-bottom:1.25rem">'
+    +'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;background:'+(b.device==='Chamber'?'var(--blue-light)':'var(--teal-light)')+';color:'+color+'">'+b.device+'</span>'
+    +(isMaint?'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;background:var(--amber-light);color:var(--amber)">保養</span>':'')
+    +'</div>'
+    +'<div class="detail-grid">'
+    +'<div><div class="di-label">Owner</div><div class="di-val">'+b.owner+'</div></div>'
+    +'<div><div class="di-label">日期區間</div><div class="di-val">'+b.start+' ~ '+b.end+'</div></div>'
+    +(b.unit?'<div><div class="di-label">借用單位</div><div class="di-val">'+b.unit+'</div></div>':'')
+    +(b.person?'<div><div class="di-label">借用人</div><div class="di-val">'+b.person+'</div></div>':'')
+    +(b.samples?'<div style="grid-column:1/-1"><div class="di-label">Test Samples / Products</div><div class="di-val">'+b.samples+'</div></div>':'')
+    +(b.condition?'<div style="grid-column:1/-1"><div class="di-label">Test Condition</div><div class="di-val">'+b.condition+'</div></div>':'')
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn btn-danger" onclick="deleteBookingEntry('+b.id+')"><i class="ti ti-trash"></i> 刪除</button>'
+    +'<button class="btn" onclick="closeModal()">關閉</button>'
+    +'</div>';
+  openModal();
+}
+
+function deleteBookingEntry(id){
+  if(confirm('確定刪除此預約？')){
+    const idx=bookingData.findIndex(b=>b.id===id);
+    if(idx>-1) bookingData.splice(idx,1);
+    closeModal(); render();
+  }
+}
+
+function renderBooking(){
+  return renderBookingFull();
+}
+
+function openAddCatalogItem(){
+  const cats = ['設備','切片用品','電性','其他','文具'];
+  document.getElementById('modal-body').innerHTML =
+    '<h3>新增常備耗材</h3>'
+    +'<div class="form-grid">'
+    +'<div class="fg"><label>分類</label>'
+    +'<select id="cat-cat">'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'</div>'
+    +'<div class="fg"><label>項目名稱</label><input type="text" id="cat-item" placeholder="例：砂紙(P2000)"></div>'
+    +'<div class="fg"><label>型號</label><input type="text" id="cat-model" placeholder="例：P2000"></div>'
+    +'<div class="fg"><label>單位</label><input type="text" id="cat-unit" placeholder="例：50片/包"></div>'
+    +'<div class="fg"><label>參考價格（NT$）</label><input type="number" id="cat-price" placeholder="例：850" min="0"></div>'
+    +'<div class="fg full"><label>購買窗口</label><input type="text" id="cat-vendor" placeholder="例：汎達科技 Kevin / 0900-018951"></div>'
+    +'<div class="fg full"><label>備註</label><input type="text" id="cat-note" placeholder="選填"></div>'
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveCatalogItem()">新增</button>'
+    +'</div>';
+  openModal();
+}
+
+function saveCatalogItem(){
+  const item = document.getElementById('cat-item').value.trim();
+  if(!item){ document.getElementById('cat-item').style.borderColor='var(--red)'; return; }
+  consumablesCatalog.push({
+    cat:   document.getElementById('cat-cat').value,
+    item,
+    model: document.getElementById('cat-model').value.trim(),
+    unit:  document.getElementById('cat-unit').value.trim(),
+    price: parseInt(document.getElementById('cat-price').value)||0,
+    vendor:document.getElementById('cat-vendor').value.trim(),
+    note:  document.getElementById('cat-note').value.trim(),
+  });
+  closeModal();
+  render();
+  // Re-open catalog after render
+  setTimeout(()=>{
+    const body = document.getElementById('catalog-body');
+    const chevron = document.getElementById('catalog-chevron');
+    if(body) body.classList.remove('collapsed');
+    if(chevron) chevron.classList.add('open');
+  }, 50);
+}
+
+function toggleCatalog(){
+  const body = document.getElementById('catalog-body');
+  const chevron = document.getElementById('catalog-chevron');
+  if(!body||!chevron) return;
+  body.classList.toggle('collapsed');
+  chevron.classList.toggle('open');
+}
+
+function openEditConsumable(id){
+  const r = consumables2026.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('modal-body').innerHTML =
+    '<h3>編輯採購項目</h3>'
+    +'<div class="form-grid">'
+    +'<div class="fg full"><label>採購項目</label><input type="text" id="ei-item" value="'+r.item+'"></div>'
+    +'<div class="fg"><label>數量</label><input type="number" id="ei-qty" value="'+(r.qty||'')+'"></div>'
+    +'<div class="fg"><label>購買地點</label><input type="text" id="ei-vendor" value="'+(r.vendor||'')+'"></div>'
+    +'<div class="fg"><label>金額（含稅 NT$）</label><input type="number" id="ei-cost" value="'+(r.cost||0)+'"></div>'
+    +'<div class="fg"><label>需求日期</label><input type="date" id="ei-date" value="'+(r.reqDate||'')+'"></div>'
+    +'<div class="fg"><label>需求人</label><input type="text" id="ei-person" value="'+(r.person||'')+'"></div>'
+    +'<div class="fg"><label>下單日期</label><input type="date" id="ei-orderdate" value="'+(r.orderDate||'')+'"></div>'
+    +'<div class="fg"><label>報帳日期</label><input type="date" id="ei-accdate" value="'+(r.accDate||'')+'"></div>'
+    +'<div class="fg"><label>採購目的</label>'
+    +'<select id="ei-purpose"><option value="耗材補充"'+(r.purpose==='耗材補充'?' selected':'')+'>耗材補充</option><option value="工具採購"'+(r.purpose==='工具採購'?' selected':'')+'>工具採購</option></select>'
+    +'</div>'
+    +'<div class="fg"><label>已下單</label>'
+    +'<select id="ei-ordered"><option value="true"'+(r.ordered?' selected':'')+'>是</option><option value="false"'+(!r.ordered?' selected':'')+'>否</option></select>'
+    +'</div>'
+    +'<div class="fg"><label>報帳完成</label>'
+    +'<select id="ei-accounted"><option value="true"'+(r.accounted?' selected':'')+'>是</option><option value="false"'+(!r.accounted?' selected':'')+'>否</option></select>'
+    +'</div>'
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveEditConsumable('+id+')">儲存</button>'
+    +'</div>';
+  openModal();
+}
+
+function saveEditConsumable(id){
+  const r = consumables2026.find(x=>x.id===id);
+  if(!r) return;
+  const item = document.getElementById('ei-item').value.trim();
+  if(!item){ document.getElementById('ei-item').style.borderColor='var(--red)'; return; }
+  r.item    = item;
+  r.qty     = parseInt(document.getElementById('ei-qty').value)||null;
+  r.vendor  = document.getElementById('ei-vendor').value.trim();
+  r.cost    = parseInt(document.getElementById('ei-cost').value)||0;
+  r.reqDate = document.getElementById('ei-date').value;
+  r.person  = document.getElementById('ei-person').value.trim();
+  r.orderDate = document.getElementById('ei-orderdate').value;
+  r.accDate = document.getElementById('ei-accdate').value;
+  r.purpose = document.getElementById('ei-purpose').value;
+  r.ordered = document.getElementById('ei-ordered').value === 'true';
+  r.accounted = document.getElementById('ei-accounted').value === 'true';
+  closeModal();
+  render();
+}
+
+function deleteConsumable(id){
+  const r = consumables2026.find(x=>x.id===id);
+  if(!r) return;
+  if(confirm('確定刪除「'+r.item+'」？')){
+    const idx = consumables2026.findIndex(x=>x.id===id);
+    if(idx>-1) consumables2026.splice(idx,1);
+    render();
+  }
+}
+
+function openAddConsumable(){
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-body').innerHTML =
+    '<h3>新增採購項目</h3>'
+    +'<div class="form-grid">'
+    +'<div class="fg full"><label>採購項目 *</label><input type="text" id="ci-item" placeholder="例：液態氮"></div>'
+    +'<div class="fg"><label>數量</label><input type="number" id="ci-qty" placeholder="例：1" min="1"></div>'
+    +'<div class="fg"><label>購買地點</label><input type="text" id="ci-vendor" placeholder="例：信華氣體"></div>'
+    +'<div class="fg"><label>金額（含稅 NT$）</label><input type="number" id="ci-cost" placeholder="例：1050" min="0"></div>'
+    +'<div class="fg"><label>需求日期</label><input type="date" id="ci-date" value="'+today+'"></div>'
+    +'<div class="fg"><label>需求人 *</label><input type="text" id="ci-person" placeholder="例：Sam"></div>'
+    +'<div class="fg"><label>採購目的</label>'
+    +'<select id="ci-purpose"><option value="耗材補充">耗材補充</option><option value="工具採購">工具採購</option></select>'
+    +'</div>'
+    +'<div class="fg"><label>報帳日期</label><input type="date" id="ci-accdate"></div>'
+    +'<div class="fg"><label>已下單</label>'
+    +'<select id="ci-ordered"><option value="false">否</option><option value="true">是</option></select>'
+    +'</div>'
+    +'<div class="fg"><label>已報帳</label>'
+    +'<select id="ci-accounted"><option value="false">否</option><option value="true">是</option></select>'
+    +'</div>'
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveConsumable()">新增</button>'
+    +'</div>';
+  openModal();
+}
+
+function saveConsumable(){
+  const item = document.getElementById('ci-item').value.trim();
+  const qty = parseInt(document.getElementById('ci-qty').value)||null;
+  const vendor = document.getElementById('ci-vendor').value.trim();
+  const cost = parseInt(document.getElementById('ci-cost').value)||0;
+  const reqDate = document.getElementById('ci-date').value;
+  const person = document.getElementById('ci-person').value.trim();
+  const purpose = document.getElementById('ci-purpose').value;
+  const accDate = document.getElementById('ci-accdate').value;
+  const ordered = document.getElementById('ci-ordered').value === 'true';
+  const accounted = document.getElementById('ci-accounted').value === 'true';
+  if(!item){ document.getElementById('ci-item').style.borderColor='var(--red)'; return; }
+  if(!person){ document.getElementById('ci-person').style.borderColor='var(--red)'; return; }
+  const newId = Math.max(...consumables2026.map(r=>r.id), 0)+1;
+  consumables2026.push({id:newId, item, qty, vendor, cost, reqDate, orderDate:'', accDate, person, purpose, ordered, accounted});
+  closeModal();
+  render();
+}
+
+function renderBudgetDonuts(){
+  const el = document.getElementById('budget-donuts');
+  if(!el) return;
+
+  const calPlan = EQ.filter(e=>e.calMethod!=='不需校驗').reduce((s,e)=>s+(e.calPlan||0),0);
+  const calActual = EQ.filter(e=>e.calMethod!=='不需校驗').reduce((s,e)=>s+(e.calCost||0),0);
+  const maintBase = EQ.filter(e=>[14,15,16].includes(e.id));
+  const maintPlan = maintBase.reduce((s,e)=>s+(e.maintPlanCost||0),0)+chamberMaint.reduce((s,r)=>s+(r.maintPlanCost||0),0);
+  const maintActual = maintBase.reduce((s,e)=>s+(e.maintCost||0),0)+chamberMaint.reduce((s,r)=>s+(r.maintCost||0),0);
+  const conActual = consumables2026.filter(r=>r.ordered).reduce((s,r)=>s+r.cost,0);
+  const conPlan = 120000;
+  const totalPlan = calPlan+maintPlan+conPlan;
+  const totalActual = calActual+maintActual+conActual;
+  const totalPct = Math.min(Math.round(totalActual/totalPlan*100),100);
+
+  function pct(a,p){ return p>0?Math.min(Math.round(a/p*100),100):0; }
+  const R=38, C=+(2*Math.PI*R).toFixed(2);
+
+  // Q breakdowns
+  const calByQ={Q1:0,Q2:0,Q3:0,Q4:0};
+  EQ.filter(e=>e.calMethod!=='不需校驗'&&e.calScheduled).forEach(e=>{
+    const m=new Date(e.calScheduled).getMonth();
+    const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+    calByQ[q]+=(e.calCost||0);
+  });
+  const maintByQ={Q1:0,Q2:0,Q3:0,Q4:0};
+  maintBase.forEach(e=>{ if(!e.maintScheduled) return; const m=new Date(e.maintScheduled).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(e.maintCost||0); });
+  chamberMaint.forEach(r=>{ if(!r.maintScheduled) return; const m=new Date(r.maintScheduled).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(r.maintCost||0); });
+  const conByQ={Q1:0,Q2:0,Q3:0,Q4:0};
+  consumables2026.filter(r=>r.ordered&&r.reqDate).forEach(r=>{ const m=new Date(r.reqDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; conByQ[q]+=r.cost; });
+
+  function donutSVG(p,color){
+    const dash=Math.round((p/100)*C);
+    return '<svg viewBox="0 0 100 100" style="transform:rotate(-90deg);width:90px;height:90px">'
+      +'<circle cx="50" cy="50" r="38" fill="none" stroke="var(--surface2)" stroke-width="11"/>'
+      +'<circle cx="50" cy="50" r="38" fill="none" stroke="'+color+'" stroke-width="11" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C-dash)+'" stroke-linecap="round"/>'
+      +'</svg>';
+  }
+
+  function qPanel(id, qData, color, budget){
+    const qBudget = budget/4;
+    const qColors = {Q1:'#185FA5',Q2:'#0D7A5F',Q3:'#9C5D0A',Q4:'#5A2DB8'};
+    return '<div id="'+id+'" style="display:none;position:absolute;top:105%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:200;min-width:210px">'
+      +'<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">每季費用</div>'
+      +['Q1','Q2','Q3','Q4'].map(q=>{
+        const p2=Math.min(Math.round(qData[q]/qBudget*100),100);
+        const over=qData[q]>qBudget;
+        return '<div style="margin-bottom:10px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'
+          +'<span style="font-weight:600;color:'+qColors[q]+'">'+q+'</span>'
+          +'<span style="font-weight:500">NT$'+qData[q].toLocaleString()+'</span>'
+          +'</div>'
+          +(qData[q]>0?'<div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">'
+          +'<div style="height:100%;width:'+p2+'%;background:'+color+';border-radius:3px"></div>'
+          +'</div>':'')
+          +'</div>';
+      }).join('')
+      +'</div>';
+  }
+
+  function donutCard(id, actual, plan, color, label, qId, qData){
+    const p = pct(actual,plan);
+    const over = actual>plan;
+    const c2 = over?'var(--red)':color;
+    return '<div class="donut-wrap" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;position:relative" onclick="toggleQPanel(this)">'
+      +'<div style="position:relative;width:90px;height:90px" data-panel="'+qId+'">'  
+      +donutSVG(p,c2)
+      +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'
+      +'<span style="font-size:16px;font-weight:600">'+p+'%</span>'
+      +'</div></div>'
+      +'<div style="text-align:center">'
+      +'<div style="font-size:12px;font-weight:600;margin-bottom:2px">'+label+' <span style="font-size:10px;color:var(--text3)">▾</span></div>'
+      +'<div style="font-size:11px;color:var(--text2)">NT$'+actual.toLocaleString()+'</div>'
+      +'<div style="font-size:10px;color:var(--text3)">/ NT$'+plan.toLocaleString()+'</div>'
+      +(over?'<div style="font-size:10px;color:var(--red)">⚠ 超支</div>':'')
+      +'</div>'
+      +qPanel(qId, qData, color, plan)
+      +'</div>';
+  }
+
+  const summaryHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">'
+    +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">年度剩餘</div>'
+    +'<div style="font-size:22px;font-weight:600;color:'+(totalActual>totalPlan?'var(--red)':'var(--text)')+'">NT$'+(totalPlan-totalActual).toLocaleString()+'</div>'
+    +'<div style="font-size:10px;color:var(--text3)">共 NT$'+totalPlan.toLocaleString()+' 規劃</div>'
+    +'<div style="margin-top:8px;height:5px;width:120px;background:var(--surface2);border-radius:3px;overflow:hidden">'
+    +'<div style="height:100%;width:'+totalPct+'%;background:'+(totalActual>totalPlan?'var(--red)':'var(--blue)')+';border-radius:3px"></div>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--text2)">整體 '+totalPct+'% 已使用</div>'
+    +'</div>';
+
+  const divider = '<div style="width:0.5px;height:110px;background:var(--border);flex-shrink:0;margin:0 0.75rem;align-self:center"></div>';
+
+  el.innerHTML = '<div style="display:flex;align-items:center">'
+    +donutCard('cal',calActual,calPlan,calActual>calPlan?'var(--red)':'var(--teal)','校驗','cal-q-panel',calByQ)
+    +divider
+    +donutCard('maint',maintActual,maintPlan,maintActual>maintPlan?'var(--red)':'var(--amber)','保養','maint-q-panel',maintByQ)
+    +divider
+    +donutCard('con',conActual,conPlan,conActual>conPlan?'var(--red)':'#5A2DB8','耗材','con-q-panel',conByQ)
+    +divider
+    +summaryHTML
+    +'</div>';
+}
+
+function toggleQPanel(el){
+  const wrap = el.closest ? el.closest('.donut-wrap') : el.parentElement;
+  const inner = wrap ? wrap.querySelector('[data-panel]') : null;
+  const panelId = inner ? inner.dataset.panel : null;
+  if(!panelId) return;
+  const panel = document.getElementById(panelId);
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  document.querySelectorAll('#cal-q-panel,#maint-q-panel,#con-q-panel').forEach(p=>{ if(p) p.style.display='none'; });
+  if(!isOpen) panel.style.display = 'block';
+}
+
+function switchDashTab(){}
+function submitCostEntry(){}
+function deleteCostEntry(){}
+function initCharts(){}
+
+/* ── EQUIPMENT FILTERS ── */
+const eqF = { q:'', cat:'', brand:'', model:'', owner:'' };
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.chip-dropdown.open').forEach(d => d.classList.remove('open'));
+});
+
+function openChipDD(name) {
+  const dd = document.getElementById('chip-dd-' + name);
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.chip-dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) {
+    populateChipOpts(name);
+    dd.classList.add('open');
+  }
+  event.stopPropagation();
+}
+
+function populateChipOpts(name) {
+  let vals = [];
+  if (name === 'cat')   vals = [...new Set(EQ.map(e => e.cat))].sort();
+  if (name === 'brand') vals = [...new Set(EQ.map(e => e.brand))].sort();
+  if (name === 'model') vals = eqF.brand
+    ? [...new Set(EQ.filter(e => e.brand === eqF.brand).map(e => e.model))].sort()
+    : [...new Set(EQ.map(e => e.model))].sort();
+  if (name === 'owner') vals = [...new Set(EQ.map(e => e.owner))].sort();
+
+  const container = document.getElementById('chip-opts-' + name);
+  if (!container) return;
+
+  container.innerHTML = vals.map(v => {
+    const isSel = eqF[name] === v;
+    let inner = '';
+    if (name === 'cat') {
+      const cc = v==='電性'?'elec':v==='材料'?'mat':v==='電性/材料'?'elec':'na';
+      inner = `<span class="badge badge-${cc}" style="pointer-events:none">${v}</span>`;
+    } else if (name === 'model') {
+      inner = `<span style="pointer-events:none;font-family:var(--mono);font-size:11px">${v}</span>`;
+    } else {
+      inner = `<span style="pointer-events:none">${v}</span>`;
+    }
+    return `<div class="chip-opt ${isSel?'sel':''}" data-val="${v}" onclick="pickChipVal('${name}','${v}',this)">
+      <span class="chip-opt-check">${isSel?'✓':''}</span>${inner}
+    </div>`;
+  }).join('');
+}
+
+function pickChipVal(name, val, el) {
+  eqF[name] = eqF[name] === val ? '' : val;
+  if (name === 'brand') eqF.model = '';
+
+  // update check marks in-place
+  const container = document.getElementById('chip-opts-' + name);
+  if (container) {
+    container.querySelectorAll('.chip-opt').forEach(opt => {
+      const sel = opt.dataset.val === eqF[name];
+      opt.classList.toggle('sel', sel);
+      opt.querySelector('.chip-opt-check').textContent = sel ? '✓' : '';
+    });
+  }
+
+  // if brand changed, close brand dropdown and reset model chip label
+  if (name === 'brand') {
+    document.getElementById('chip-dd-brand')?.classList.remove('open');
+    updateChipLabel('model', eqF.model || '型號');
+  }
+
+  updateChipLabel(name, eqF[name] || { cat:'類別', brand:'廠牌', model:'型號', owner:'負責人' }[name]);
+  updateChipActive(name);
+  updateActiveCount();
+  filterEquipment();
+  event.stopPropagation();
+}
+
+function updateChipLabel(name, text) {
+  const lbl = document.querySelector(`#chip-${name} .chip-label`);
+  if (lbl) lbl.textContent = text;
+}
+
+function updateChipActive(name) {
+  const chip = document.getElementById('chip-' + name);
+  if (!chip) return;
+  const hasVal = !!eqF[name];
+  chip.classList.toggle('active', hasVal);
+  const clr = chip.querySelector('.chip-clear');
+  if (clr) clr.style.display = hasVal ? 'inline' : 'none';
+  // model chip opacity
+  if (name === 'brand') {
+    const mc = document.getElementById('chip-model');
+    if (mc) mc.style.opacity = eqF.brand ? '1' : '0.45';
+  }
+}
+
+function updateActiveCount() {
+  const count = Object.values(eqF).filter(Boolean).length;
+  const badge = document.getElementById('ef-active-badge');
+  if (badge) { badge.textContent = count || ''; badge.style.display = count ? 'inline-flex' : 'none'; }
+}
+
+function clearChip(name) {
+  eqF[name] = '';
+  if (name === 'brand') { eqF.model = ''; updateChipLabel('model','型號'); updateChipActive('model'); }
+  const defaults = { cat:'類別', brand:'廠牌', model:'型號', owner:'負責人' };
+  updateChipLabel(name, defaults[name]);
+  updateChipActive(name);
+  updateActiveCount();
+  filterEquipment();
+  event.stopPropagation();
+}
+
+function resetEqFilters() {
+  Object.keys(eqF).forEach(k => eqF[k] = '');
+  const qi = document.getElementById('ef-q');
+  if (qi) qi.value = '';
+  ['cat','brand','model','owner'].forEach(name => {
+    const defaults = { cat:'類別', brand:'廠牌', model:'型號', owner:'負責人' };
+    updateChipLabel(name, defaults[name]);
+    updateChipActive(name);
+  });
+  const mc = document.getElementById('chip-model');
+  if (mc) mc.style.opacity = '0.45';
+  updateActiveCount();
+  filterEquipment();
+}
+
+function filterEquipment() {
+  eqF.q = (document.getElementById('ef-q')?.value || '').toLowerCase();
+  const data = EQ.filter(e => {
+    if (eqF.q && !(e.name+e.brand+e.model+e.prop+e.owner).toLowerCase().includes(eqF.q)) return false;
+    if (eqF.cat   && e.cat   !== eqF.cat)   return false;
+    if (eqF.brand && e.brand !== eqF.brand) return false;
+    if (eqF.model && e.model !== eqF.model) return false;
+    if (eqF.owner && e.owner !== eqF.owner) return false;
+    return true;
+  });
+
+  const counter = document.getElementById('eq-counter');
+  if (counter) counter.textContent = `${data.length} / ${EQ.length} 台設備`;
+
+  const tbody = document.getElementById('eq-tbody');
+  if (!tbody) return;
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px"><i class="ti ti-search-off" style="font-size:28px;display:block;margin-bottom:8px"></i>無符合條件的設備</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(e => {
+    const cc = e.cat==='電性'?'elec':e.cat==='材料'?'mat':e.cat==='電性/材料'?'elec':'na';
+    return `<tr>
+      <td class="td-mono" style="color:var(--text3)">${e.id}</td>
+      <td><span class="badge badge-${cc}">${e.cat}</span></td>
+      <td class="td-mono">${e.prop}</td>
+      <td>
+        <div style="font-weight:500;font-size:13px;line-height:1.4;margin-bottom:3px">${e.name}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${e.brand} · ${e.model}</div>
+      </td>
+      <td><span class="owner-pill">${e.owner}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-ghost" onclick="openDetail(${e.id})" title="詳情"><i class="ti ti-eye"></i></button>
+        <button class="btn btn-sm btn-ghost" onclick="openEdit(${e.id})" title="編輯"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-ghost btn-danger" onclick="deleteEquip(${e.id})" title="刪除"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function makeChip(name, defaultLabel, icon) {
+  return `<div class="filter-chip" id="chip-${name}" onclick="openChipDD('${name}')" style="${name==='model'?'opacity:0.45':''}">
+    <i class="ti ti-${icon}" aria-hidden="true"></i>
+    <span class="chip-label">${defaultLabel}</span>
+    <i class="ti ti-x chip-clear" style="display:none;font-size:11px;margin-left:2px" onclick="clearChip('${name}')" aria-hidden="true"></i>
+    <div class="chip-dropdown" id="chip-dd-${name}" onclick="event.stopPropagation()">
+      <div class="chip-opts" id="chip-opts-${name}"></div>
+      <div class="chip-foot">
+        <button class="chip-btn" onclick="clearChip('${name}')">清除</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderEquipment() {
+  Object.keys(eqF).forEach(k => eqF[k] = '');
+  return `<div class="page-hd">
+  <div class="page-hd-left">
+    <h1><i class="ti ti-clipboard-list"></i>設備清單</h1>
+    <p id="eq-counter">${EQ.length} / ${EQ.length} 台設備</p>
+  </div>
+  <button class="btn btn-primary" onclick="openAddEq()"><i class="ti ti-plus"></i> 新增設備</button>
+</div>
+
+<div class="filter-bar">
+  <div class="search-wrap" style="min-width:0;flex:1;max-width:280px">
+    <i class="ti ti-search"></i>
+    <input id="ef-q" placeholder="搜尋名稱、型號、財產編號..." oninput="filterEquipment()">
+  </div>
+  <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
+  ${makeChip('cat','類別','category')}
+  ${makeChip('brand','廠牌','building-factory-2')}
+  ${makeChip('model','型號','barcode')}
+  ${makeChip('owner','負責人','user')}
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <span id="ef-active-badge" style="display:none;background:var(--blue);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600"></span>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px" onclick="resetEqFilters()"><i class="ti ti-x"></i> 清除</button>
+  </div>
+</div>
+
+<div class="tbl-wrap"><table style="table-layout:fixed;width:100%">
+<thead><tr>
+  <th style="width:40px">#</th>
+  <th style="width:80px">類別<br><span style="font-weight:400;font-size:10px;opacity:0.6">Category</span></th>
+  <th style="width:116px">財產編號<br><span style="font-weight:400;font-size:10px;opacity:0.6">Asset No.</span></th>
+  <th style="width:240px">儀器 / 廠牌 · 型號<br><span style="font-weight:400;font-size:10px;opacity:0.6">Equipment / Brand · Model</span></th>
+  <th style="width:110px">負責人<br><span style="font-weight:400;font-size:10px;opacity:0.6">Owner</span></th>
+  <th style="width:120px">操作<br><span style="font-weight:400;font-size:10px;opacity:0.6">Actions</span></th>
+</tr></thead>
+<tbody id="eq-tbody"></tbody></table></div>`;
+}
+/* ── CALIBRATION ── */
+const calStatusOpts = ['已校驗','校驗中','尚未校驗'];
+function calStatusCls(s){ return s==='已校驗'?'ok':s==='校驗中'?'warn':'none'; }
+
+function renderCalibration(){
+  const data=EQ.filter(e=>e.calMethod!=='不需校驗').sort((a,b)=>{ const da=a.calScheduled||'9999'; const db=b.calScheduled||'9999'; return da.localeCompare(db); });
+  const done=data.filter(e=>e.calStatus==='已校驗').length;
+  const ing=data.filter(e=>e.calStatus==='校驗中').length;
+  const notYet=data.filter(e=>!e.calStatus||e.calStatus==='尚未校驗').length;
+  return`<div class="page-hd"><div class="page-hd-left"><h1><i class="ti ti-certificate"></i>校驗管理</h1><p>${data.length} 台設備需定期校驗</p></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">已校驗</div><div class="stat-val teal" style="font-size:22px">${done}</div></div>
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">校驗中</div><div class="stat-val amber" style="font-size:22px">${ing}</div></div>
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">尚未校驗</div><div class="stat-val" style="font-size:22px;color:var(--text3)">${notYet}</div></div>
+</div>
+<div class="tbl-wrap"><table style="table-layout:fixed;width:100%">
+<thead><tr>
+  <th style="width:200px">儀器 / 廠牌 · 型號</th>
+  <th style="width:80px">類別<br><span style="font-weight:400;font-size:10px;opacity:0.6">Category</span></th>
+  <th style="width:85px">校驗方式<br><span style="font-weight:400;font-size:10px;opacity:0.6">Method</span></th>
+  <th style="width:110px">預計校驗日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Scheduled</span></th>
+  <th style="width:90px">實際費用</th>
+  <th style="width:90px">規劃費用</th>
+  <th style="width:85px">狀態<br><span style="font-weight:400;font-size:10px;opacity:0.6">Status</span></th>
+  <th style="width:80px">操作<br><span style="font-weight:400;font-size:10px;opacity:0.6">Actions</span></th>
+</tr></thead>
+<tbody>${data.map(e=>{
+  const st=e.calStatus||'尚未校驗';
+  const cls=calStatusCls(st);
+  const cc=e.cat==='電性'?'elec':e.cat==='材料'?'mat':e.cat==='電性/材料'?'elec':'na';
+  return`<tr>
+    <td><div style="font-weight:500;font-size:13px;margin-bottom:2px">${e.name}</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${e.brand} · ${e.model}</div></td>
+    <td><span class="badge badge-${cc}">${e.cat}</span></td>
+    <td style="font-size:12px">${e.calMethod}</td>
+    <td style="font-size:12px">${fd(e.calScheduled)||'—'}</td>
+    <td>${fm(e.calCost)}</td>
+    <td>${fm(e.calPlan)}</td>
+    <td><span class="badge badge-${cls}">${st==="已校驗"?"已校驗 Calibrated":st==="校驗中"?"校驗中 In Progress":"尚未校驗 Pending"}</span></td>
+    <td><button class="btn btn-sm" onclick="openCalEdit(${e.id})"><i class="ti ti-edit"></i> 更新</button></td>
+  </tr>`;}).join('')}
+</tbody></table></div>`;
+}
+
+/* ── MAINTENANCE ── */
+const maintIds=[14,15,16];
+const maintStatusOpts=['已保養','保養中','尚未保養'];
+function maintStatusCls(s){ return s==='已保養'?'ok':s==='保養中'?'warn':'none'; }
+
+function renderMaintenance(){
+  const baseData=EQ.filter(e=>maintIds.includes(e.id));
+  // Build combined rows: Chamber quarterly + other 3 devices
+  const allRows=[...chamberMaint,...baseData.map(e=>({...e,quarter:null}))].sort((a,b)=>{
+    const da=(a.maintScheduled||a.calScheduled||'9999');
+    const db=(b.maintScheduled||b.calScheduled||'9999');
+    return da.localeCompare(db);
+  });
+  const allStatuses=[...chamberMaint.map(r=>r.maintStatus),...baseData.map(e=>e.maintStatus||'尚未保養')];
+  const done=allStatuses.filter(s=>s==='已保養').length;
+  const ing=allStatuses.filter(s=>s==='保養中').length;
+  const notYet=allStatuses.filter(s=>s==='尚未保養').length;
+  const data=allRows;
+  return`<div class="page-hd"><div class="page-hd-left"><h1><i class="ti ti-settings-2"></i>保養管理</h1><p>${data.length} 台設備需定期保養</p></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">已保養</div><div class="stat-val teal" style="font-size:22px">${done}</div></div>
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">保養中</div><div class="stat-val amber" style="font-size:22px">${ing}</div></div>
+  <div class="card" style="padding:0.875rem 1rem"><div class="stat-label">尚未保養</div><div class="stat-val" style="font-size:22px;color:var(--text3)">${notYet}</div></div>
+</div>
+<div class="tbl-wrap"><table style="table-layout:fixed;width:100%">
+<thead><tr>
+  <th style="width:200px">儀器 / 廠牌 · 型號</th>
+  <th style="width:80px">類別<br><span style="font-weight:400;font-size:10px;opacity:0.6">Category</span></th>
+  <th style="width:105px">預計保養日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Scheduled</span></th>
+  <th style="width:105px">實際保養日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Actual Date</span></th>
+  <th style="width:90px">實際費用</th>
+  <th style="width:95px">規劃費用</th>
+  <th style="width:85px">狀態<br><span style="font-weight:400;font-size:10px;opacity:0.6">Status</span></th>
+  <th style="width:80px">操作<br><span style="font-weight:400;font-size:10px;opacity:0.6">Actions</span></th>
+</tr></thead>
+<tbody>${data.map(row=>{
+  const isChamber = row.quarter !== undefined && row.quarter !== null;
+  if(isChamber){
+    const eq=EQ.find(e=>e.id===11);
+    const st=row.maintStatus||'尚未保養';
+    const cls=maintStatusCls(st);
+    return`<tr>
+      <td><div style="font-weight:500;font-size:13px;margin-bottom:2px">${eq.name}</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${eq.brand} · ${eq.model}</div></td>
+      <td><span class="badge badge-elec">${eq.cat}</span></td>
+      <td style="font-size:12px">${fd(row.maintScheduled)||'—'} <span style="font-size:10px;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:10px;margin-left:3px">${row.quarter}</span></td>
+      <td style="font-size:12px">${fd(row.maintActualDate)||'—'}</td>
+      <td>${fm(row.maintCost)}</td>
+      <td>${fm(row.maintPlanCost)}</td>
+      <td><span class="badge badge-${cls}">${st==="已保養"?"已保養 Maintained":st==="保養中"?"保養中 In Progress":"尚未保養 Pending"}</span></td>
+      <td><button class="btn btn-sm" onclick="openChamberMaintEdit('${row.id}')"><i class="ti ti-edit"></i> 更新</button></td>
+    </tr>`;
+  }
+  const e=row;
+  const st=e.maintStatus||'尚未保養';
+  const cls=maintStatusCls(st);
+  const cc=e.cat==='電性'?'elec':e.cat==='材料'?'mat':e.cat==='電性/材料'?'elec':'na';
+  return`<tr>
+    <td><div style="font-weight:500;font-size:13px;margin-bottom:2px">${e.name}</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${e.brand} · ${e.model}</div></td>
+    <td><span class="badge badge-${cc}">${e.cat}</span></td>
+    <td style="font-size:12px">${fd(e.maintScheduled)||'—'}</td>
+    <td style="font-size:12px">${fd(e.maintActualDate)||'—'}</td>
+    <td>${fm(e.maintCost)}</td>
+    <td>${fm(e.maintPlanCost)}</td>
+    <td><span class="badge badge-${cls}">${st==="已保養"?"已保養 Maintained":st==="保養中"?"保養中 In Progress":"尚未保養 Pending"}</span></td>
+    <td><button class="btn btn-sm" onclick="openMaintEdit(${e.id})"><i class="ti ti-edit"></i> 更新</button></td>
+  </tr>`;}).join('')}
+</tbody></table></div>`;
+}
+
+/* ── REPAIR ── */
+function renderRepair(){
+  return`<div class="page-hd">
+  <div class="page-hd-left"><h1><i class="ti ti-tools"></i>維修紀錄</h1><p>共 ${repairs.length} 筆維修紀錄</p></div>
+  <button class="btn btn-primary" onclick="openRepairAdd()"><i class="ti ti-plus"></i> 新增維修</button>
+</div>
+${repairs.length===0?'<div class="empty"><i class="ti ti-tool"></i><p>尚無維修紀錄</p></div>':repairs.slice().reverse().map((r,ri)=>{
+  const idx=repairs.length-1-ri;
+  const eq=EQ.find(e=>e.id===r.eqId);
+  return`<div class="repair-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">${eq?eq.name:'未知設備'}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${eq?eq.brand+' '+eq.model+' · ':''}<span class="td-mono">${eq?eq.prop:'—'}</span></div>
+        <div style="font-size:13px">${r.note}</div>
+        ${r.cost?`<div style="font-size:12px;color:var(--text3);margin-top:5px">費用：${fm(r.cost)}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:12px;font-weight:500;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 10px;display:inline-block">${r.date}</div>
+        <div style="margin-top:8px"><button class="btn btn-sm btn-danger" onclick="delRepair(${idx})"><i class="ti ti-trash"></i> 刪除</button></div>
+      </div>
+    </div>
+  </div>`;}).join('')}`;
+}
+
+/* ── BUDGET ── */
+function renderBudget(){
+  // 從校驗資料抓
+  const calData = EQ.filter(e=>e.calMethod!=='不需校驗');
+  const calPlanTotal = calData.reduce((s,e)=>s+(e.calPlan||0),0);
+  const calActualTotal = calData.reduce((s,e)=>s+(e.calCost||0),0);
+
+  // 從保養資料抓（3台 + Chamber四季）
+  const maintBase = EQ.filter(e=>[14,15,16].includes(e.id));
+  const maintPlanBase = maintBase.reduce((s,e)=>s+(e.maintPlanCost||0),0);
+  const maintActualBase = maintBase.reduce((s,e)=>s+(e.maintCost||0),0);
+  const chamberPlanTotal = chamberMaint.reduce((s,r)=>s+(r.maintPlanCost||0),0);
+  const chamberActualTotal = chamberMaint.reduce((s,r)=>s+(r.maintCost||0),0);
+  const maintPlanTotal = maintPlanBase + chamberPlanTotal;
+  const maintActualTotal = maintActualBase + chamberActualTotal;
+
+  // 每季校驗
+  const calByQ = {Q1:0,Q2:0,Q3:0,Q4:0};
+  calData.forEach(e=>{
+    if(!e.calScheduled) return;
+    const m = new Date(e.calScheduled).getMonth();
+    const q = m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+    calByQ[q] += (e.calPlan||0);
+  });
+
+  // 每季保養
+  const maintByQ = {Q1:0,Q2:0,Q3:0,Q4:0};
+  maintBase.forEach(e=>{
+    if(!e.maintScheduled) return;
+    const m = new Date(e.maintScheduled).getMonth();
+    const q = m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+    maintByQ[q] += (e.maintPlanCost||0);
+  });
+  chamberMaint.forEach(r=>{
+    if(!r.maintScheduled) return;
+    const m = new Date(r.maintScheduled).getMonth();
+    const q = m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+    maintByQ[q] += (r.maintPlanCost||0);
+  });
+
+  const calPct = calPlanTotal>0?Math.min(Math.round(calActualTotal/calPlanTotal*100),100):0;
+  const maintPct = maintPlanTotal>0?Math.min(Math.round(maintActualTotal/maintPlanTotal*100),100):0;
+
+  return`<div class="page-hd"><div class="page-hd-left"><h1><i class="ti ti-report-money"></i>預算管理</h1><p>2026 年度校驗與保養費用規劃</p></div></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-certificate"></i> 2026 校驗預算</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+      <span style="color:var(--text2)">規劃費用</span><span style="font-weight:500">NT$${calPlanTotal.toLocaleString()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+      <span style="color:var(--text2)">實際花費</span><span style="font-weight:500;color:var(--teal)">NT$${calActualTotal.toLocaleString()}</span>
+    </div>
+    <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:4px">
+      <div style="height:100%;width:${calPct}%;background:${calActualTotal>calPlanTotal?'var(--red)':'var(--teal)'};border-radius:4px;transition:width 0.5s"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3)">${calPct}% 已使用 ${calActualTotal>calPlanTotal?'<span style="color:var(--red);font-weight:500">⚠ 超支</span>':''}</div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title"><i class="ti ti-settings-2"></i> 2026 保養預算</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+      <span style="color:var(--text2)">規劃費用</span><span style="font-weight:500">NT$${maintPlanTotal.toLocaleString()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+      <span style="color:var(--text2)">實際花費</span><span style="font-weight:500;color:var(--amber)">NT$${maintActualTotal.toLocaleString()}</span>
+    </div>
+    <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:4px">
+      <div style="height:100%;width:${maintPct}%;background:${maintActualTotal>maintPlanTotal?'var(--red)':'var(--amber)'};border-radius:4px;transition:width 0.5s"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3)">${maintPct}% 已使用 ${maintActualTotal>maintPlanTotal?'<span style="color:var(--red);font-weight:500">⚠ 超支</span>':''}</div>
+  </div>
+</div>
+
+<div class="card section-gap">
+  <div class="card-hd"><span class="card-title"><i class="ti ti-chart-bar"></i> 2026 年度校驗規劃（每季）</span><strong style="font-size:13px">NT$${calPlanTotal.toLocaleString()}</strong></div>
+  <div class="q-grid">${['Q1','Q2','Q3','Q4'].map(q=>`<div class="q-box"><div class="q-label">${q}</div><div class="q-val ${calByQ[q]>0?'blue':''}">${calByQ[q]>0?'NT$'+calByQ[q].toLocaleString():'—'}</div></div>`).join('')}</div>
+  ${calData.filter(e=>e.calPlan>0).sort((a,b)=>(a.calScheduled||'').localeCompare(b.calScheduled||'')).map(e=>{
+    const m=e.calScheduled?new Date(e.calScheduled).getMonth():null;
+    const q=m!==null?(m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'):'—';
+    return`<div class="budget-row">
+      <span>${e.name}</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge badge-na">${q}</span>
+        <span style="color:var(--text2)">規劃 NT$${(e.calPlan||0).toLocaleString()}</span>
+        ${e.calCost?`<span style="color:var(--teal);font-weight:500">實際 NT$${e.calCost.toLocaleString()}</span>`:''}
+      </div>
+    </div>`;
+  }).join('')}
+  <div class="budget-row budget-total"><span>合計</span><span>NT$${calPlanTotal.toLocaleString()}</span></div>
+</div>
+
+<div class="card">
+  <div class="card-hd"><span class="card-title"><i class="ti ti-chart-bar"></i> 2026 年度保養規劃（每季）</span><strong style="font-size:13px">NT$${maintPlanTotal.toLocaleString()}</strong></div>
+  <div class="q-grid">${['Q1','Q2','Q3','Q4'].map(q=>`<div class="q-box"><div class="q-label">${q}</div><div class="q-val amber">${maintByQ[q]>0?'NT$'+maintByQ[q].toLocaleString():'—'}</div></div>`).join('')}</div>
+  ${[...chamberMaint.map(r=>({name:'Chamber 環境試驗箱 '+r.quarter,scheduled:r.maintScheduled,plan:r.maintPlanCost,actual:r.maintCost})),...maintBase.map(e=>({name:e.name,scheduled:e.maintScheduled,plan:e.maintPlanCost,actual:e.maintCost}))].sort((a,b)=>(a.scheduled||'').localeCompare(b.scheduled||'')).map(item=>{
+    const m=item.scheduled?new Date(item.scheduled).getMonth():null;
+    const q=m!==null?(m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'):'—';
+    return`<div class="budget-row">
+      <span>${item.name}</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge badge-na">${q}</span>
+        <span style="color:var(--text2)">規劃 NT$${(item.plan||0).toLocaleString()}</span>
+        ${item.actual?`<span style="color:var(--amber);font-weight:500">實際 NT$${item.actual.toLocaleString()}</span>`:''}
+      </div>
+    </div>`;
+  }).join('')}
+  <div class="budget-row budget-total"><span>合計</span><span>NT$${maintPlanTotal.toLocaleString()}</span></div>
+</div>`;
+}
+
+function openDetail(id){
+  const e=EQ.find(x=>x.id===id);
+  const rs=repairs.filter(r=>r.eqId===id);
+  const cc=e.cat==='電性'?'elec':e.cat==='材料'?'mat':e.cat==='電性/材料'?'elec':'na';
+  document.getElementById('modal-body').innerHTML=`
+<h3><span class="badge badge-${cc}" style="margin-right:8px">${e.cat}</span>${e.name}</h3>
+<div class="detail-grid">
+  <div><div class="di-label">財產編號</div><div class="di-val td-mono">${e.prop}</div></div>
+  <div><div class="di-label">廠牌</div><div class="di-val">${e.brand}</div></div>
+  <div><div class="di-label">型號</div><div class="di-val">${e.model}</div></div>
+  <div><div class="di-label">序號</div><div class="di-val td-mono">${e.sn}</div></div>
+  <div><div class="di-label">負責人</div><div class="di-val">${e.owner}</div></div>
+  <div><div class="di-label">校驗方式</div><div class="di-val">${e.calMethod}</div></div>
+  <div><div class="di-label">最近校驗日</div><div class="di-val">${fd(e.lastCal)}</div></div>
+  <div><div class="di-label">校驗到期日</div><div class="di-val">${fd(e.calExpiry)}</div></div>
+  <div><div class="di-label">購買廠商</div><div class="di-val">${e.vendor||'—'}</div></div>
+  <div><div class="di-label">服務聯絡</div><div class="di-val">${e.contact||'—'}</div></div>
+</div>
+<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">維修紀錄（${rs.length} 筆）</div>
+${rs.length===0?'<div style="font-size:13px;color:var(--text3);padding:8px 0">無維修紀錄</div>':rs.map(r=>`<div class="repair-card" style="margin-bottom:8px"><div style="font-weight:600;margin-bottom:3px">${r.date}</div><div style="font-size:13px;color:var(--text2)">${r.note}${r.cost?' · '+fm(r.cost):''}</div></div>`).join('')}
+<div class="modal-foot"><button class="btn" onclick="closeModal()">關閉</button></div>`;
+  openModal();
+}
+
+function openEdit(id){
+  editId=id;const e=EQ.find(x=>x.id===id);
+  document.getElementById('modal-body').innerHTML=`
+<h3>編輯設備 — ${e.name}</h3>
+<div class="form-grid">
+  <div class="fg full"><label>儀器名稱</label><input id="fn" value="${e.name}"></div>
+  <div class="fg"><label>財產編號</label><input id="fp" value="${e.prop}"></div>
+  <div class="fg"><label>類別</label><select id="fc"><option${e.cat==='電性'?' selected':''}>電性</option><option${e.cat==='材料'?' selected':''}>材料</option><option${e.cat==='電性/材料'?' selected':''}>電性/材料</option><option${e.cat==='測試電腦'?' selected':''}>測試電腦</option></select></div>
+  <div class="fg"><label>廠牌</label><input id="fbr" value="${e.brand}"></div>
+  <div class="fg"><label>型號</label><input id="fmo" value="${e.model}"></div>
+  <div class="fg"><label>序號</label><input id="fsn" value="${e.sn}"></div>
+  <div class="fg"><label>負責人</label><input id="fo" value="${e.owner}"></div>
+  <div class="fg"><label>校驗方式</label><select id="fcm"><option${e.calMethod==='委外校驗'?' selected':''}>委外校驗</option><option${e.calMethod==='遊校校驗'?' selected':''}>遊校校驗</option><option${e.calMethod==='不需校驗'?' selected':''}>不需校驗</option></select></div>
+  <div class="fg full"><label>購買廠商</label><input id="fv" value="${e.vendor}"></div>
+  <div class="fg full"><label>服務聯絡</label><input id="fct" value="${e.contact}"></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveEdit()">儲存</button></div>`;
+  openModal();
+}
+function saveEdit(){
+  const e=EQ.find(x=>x.id===editId);
+  e.name=document.getElementById('fn').value;e.prop=document.getElementById('fp').value;
+  e.cat=document.getElementById('fc').value;e.brand=document.getElementById('fbr').value;
+  e.model=document.getElementById('fmo').value;e.sn=document.getElementById('fsn').value;
+  e.owner=document.getElementById('fo').value;e.calMethod=document.getElementById('fcm').value;
+  e.vendor=document.getElementById('fv').value;e.contact=document.getElementById('fct').value;
+  closeModal();render();
+}
+
+function openCalEdit(id){
+  editId=id;const e=EQ.find(x=>x.id===id);
+  const statusOpts=calStatusOpts.map(s=>`<option value="${s}"${(e.calStatus||'尚未校驗')===s?' selected':''}>${s}</option>`).join('');
+  document.getElementById('modal-body').innerHTML=`
+<h3>更新校驗 — ${e.name}</h3>
+<div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem;font-family:var(--mono)">${e.brand} · ${e.model}</div>
+<div class="form-grid">
+  <div class="fg"><label>預計校驗日期</label><input type="date" id="fcs" value="${e.calScheduled||''}"></div>
+  <div class="fg"><label>校驗狀態</label><select id="fcst">${statusOpts}</select></div>
+  <div class="fg"><label>實際費用（NT$）</label><input type="number" id="fcc" value="${e.calCost||0}"></div>
+  <div class="fg"><label>規劃費用（NT$）</label><input type="number" id="fcp" value="${e.calPlan||0}"></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveCalEdit()">儲存</button></div>`;
+  openModal();
+}
+function saveCalEdit(){
+  const e=EQ.find(x=>x.id===editId);
+  e.calScheduled=document.getElementById('fcs').value;
+  e.calStatus=document.getElementById('fcst').value;
+  e.calCost=parseInt(document.getElementById('fcc').value)||0;
+  e.calPlan=parseInt(document.getElementById('fcp').value)||0;
+  closeModal();render();
+}
+
+function openMaintEdit(id){
+  editId=id;const e=EQ.find(x=>x.id===id);
+  const statusOpts=maintStatusOpts.map(s=>`<option value="${s}"${(e.maintStatus||'尚未保養')===s?' selected':''}>${s}</option>`).join('');
+  document.getElementById('modal-body').innerHTML=`
+<h3>更新保養 — ${e.name}</h3>
+<div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem;font-family:var(--mono)">${e.brand} · ${e.model}</div>
+<div class="form-grid">
+  <div class="fg"><label>預計保養日期</label><input type="date" id="fms" value="${e.maintScheduled||''}"></div>
+  <div class="fg"><label>實際保養日期</label><input type="date" id="fmad" value="${e.maintActualDate||''}"></div>
+  <div class="fg"><label>保養狀態</label><select id="fmst">${statusOpts}</select></div>
+  <div class="fg"><label>實際費用（NT$）</label><input type="number" id="fmc" value="${e.maintCost||0}"></div>
+  <div class="fg full"><label>規劃費用（NT$）</label><input type="number" id="fmpc" value="${e.maintPlanCost||0}"></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMaintEdit()">儲存</button></div>`;
+  openModal();
+}
+function saveMaintEdit(){
+  const e=EQ.find(x=>x.id===editId);
+  e.maintScheduled=document.getElementById('fms').value;
+  e.maintActualDate=document.getElementById('fmad').value;
+  e.maintStatus=document.getElementById('fmst').value;
+  e.maintCost=parseInt(document.getElementById('fmc').value)||0;
+  e.maintPlanCost=parseInt(document.getElementById('fmpc').value)||0;
+  closeModal();render();
+}
+
+let editChamberMaintId=null;
+function openChamberMaintEdit(rowId){
+  const row=chamberMaint.find(r=>r.id===rowId);
+  if(!row)return;
+  editChamberMaintId=rowId;
+  const eq=EQ.find(e=>e.id===11);
+  const statusOpts=maintStatusOpts.map(s=>'<option value="'+s+'"'+(row.maintStatus===s?' selected':'')+'>'+s+'</option>').join('');
+  document.getElementById('modal-body').innerHTML=
+    '<h3>更新保養 — '+eq.name+' <span style="font-size:13px;color:var(--blue);font-weight:400">'+row.quarter+'</span></h3>'
+    +'<div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem;font-family:var(--mono)">'+eq.brand+' · '+eq.model+'</div>'
+    +'<div class="form-grid">'
+    +'<div class="fg"><label>預計保養日期</label><input type="date" id="fms" value="'+(row.maintScheduled||'')+'"></div>'
+    +'<div class="fg"><label>保養狀態</label><select id="fmst">'+statusOpts+'</select></div>'
+    +'<div class="fg"><label>實際費用（NT$）</label><input type="number" id="fmc" value="'+(row.maintCost||0)+'"></div>'
+    +'<div class="fg"><label>規劃費用（NT$）</label><input type="number" id="fmpc" value="'+(row.maintPlanCost||0)+'"></div>'
+    +'</div>'
+    +'<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveChamberMaintEdit()">儲存</button></div>';
+  openModal();
+}
+
+function saveChamberMaintEdit(){
+  const row=chamberMaint.find(r=>r.id===editChamberMaintId);
+  if(!row)return;
+  row.maintScheduled=document.getElementById('fms').value;
+  row.maintActualDate=document.getElementById('fmad').value;
+  row.maintStatus=document.getElementById('fmst').value;
+  row.maintCost=parseInt(document.getElementById('fmc').value)||0;
+  row.maintPlanCost=parseInt(document.getElementById('fmpc').value)||0;
+  closeModal();render();
+}
+
+function openRepairAdd(){
+  document.getElementById('modal-body').innerHTML=`
+<h3>新增維修紀錄</h3>
+<div class="form-grid">
+  <div class="fg full"><label>設備</label><select id="frid">${EQ.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></div>
+  <div class="fg"><label>維修日期</label><input type="date" id="frd" value="${new Date().toISOString().split('T')[0]}"></div>
+  <div class="fg"><label>費用（NT$）</label><input type="number" id="frc" value="0"></div>
+  <div class="fg full"><label>維修說明</label><textarea id="frn" placeholder="說明維修內容、更換零件等..."></textarea></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveRepair()">新增</button></div>`;
+  openModal();
+}
+function saveRepair(){
+  repairs.push({id:Date.now(),eqId:parseInt(document.getElementById('frid').value),date:document.getElementById('frd').value,note:document.getElementById('frn').value,cost:parseInt(document.getElementById('frc').value)||0});
+  closeModal();render();
+}
+function delRepair(i){if(confirm('確定刪除此維修紀錄？')){repairs.splice(i,1);render();}}
+
+function deleteEquip(id){
+  const e = EQ.find(x=>x.id===id);
+  if(!e) return;
+  if(confirm('確定刪除「'+e.name+'」？此操作無法復原。')){
+    const idx = EQ.findIndex(x=>x.id===id);
+    if(idx>-1) EQ.splice(idx,1);
+    render();
+  }
+}
+
+function openAddEq(){
+  const html = [
+    '<h3>新增設備</h3>',
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">基本資料</div>',
+    '<div class="form-grid">',
+    '<div class="fg full"><label>儀器名稱</label><input id="fn" placeholder="例：Data logger 資料記錄器"></div>',
+    '<div class="fg"><label>財產編號</label><input id="fp"></div>',
+    '<div class="fg"><label>類別</label><select id="fc"><option>電性</option><option>材料</option><option>電性/材料</option><option>測試電腦</option></select></div>',
+    '<div class="fg"><label>廠牌</label><input id="fbr"></div>',
+    '<div class="fg"><label>型號</label><input id="fmo"></div>',
+    '<div class="fg"><label>序號</label><input id="fsn"></div>',
+    '<div class="fg"><label>負責人</label><input id="fo"></div>',
+    '<div class="fg full"><label>購買廠商</label><input id="fv"></div>',
+    '<div class="fg full"><label>服務聯絡</label><input id="fct"></div>',
+    '</div>',
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin:1rem 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)">校驗資料</div>',
+    '<div class="form-grid">',
+    '<div class="fg"><label>校驗方式</label><select id="fcm"><option>委外校驗</option><option>遊校校驗</option><option>不需校驗</option></select></div>',
+    '<div class="fg"><label>預計校驗日</label><input type="date" id="fcs"></div>',
+    '<div class="fg"><label>規劃費用（NT$）</label><input type="number" id="fcplan" placeholder="0"></div>',
+    '<div class="fg"><label>校驗狀態</label><select id="fcst"><option value="尚未校驗">尚未校驗</option><option value="校驗中">校驗中</option><option value="已校驗">已校驗</option></select></div>',
+    '</div>',
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin:1rem 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)">保養資料 <span style="font-weight:400;font-size:10px;color:var(--text3)">（選填，有保養需求再填）</span></div>',
+    '<div class="form-grid">',
+    '<div class="fg"><label>預計保養日</label><input type="date" id="fms2"></div>',
+    '<div class="fg"><label>規劃費用（NT$）</label><input type="number" id="fmplan" placeholder="0"></div>',
+    '<div class="fg"><label>保養狀態</label><select id="fmst2"><option value="尚未保養">尚未保養</option><option value="保養中">保養中</option><option value="已保養">已保養</option></select></div>',
+    '<div class="fg"><label>負責廠商</label><input id="fmv" placeholder="選填"></div>',
+    '</div>',
+    '<div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doAddEq()">新增</button></div>'
+  ].join('');
+  document.getElementById('modal-body').innerHTML = html;
+  openModal();
+}
+function doAddEq(){
+  const name = document.getElementById('fn').value.trim();
+  if(!name){ document.getElementById('fn').style.borderColor='var(--red)'; return; }
+  const newId = Math.max(...EQ.map(e=>e.id))+1;
+  const calMethod = document.getElementById('fcm').value;
+  const hasMaint = document.getElementById('fms').value || parseInt(document.getElementById('fmplan').value||0)>0;
+
+  EQ.push({
+    id: newId,
+    name,
+    prop:  document.getElementById('fp').value,
+    cat:   document.getElementById('fc').value,
+    brand: document.getElementById('fbr').value,
+    model: document.getElementById('fmo').value,
+    sn:    document.getElementById('fsn').value,
+    owner: document.getElementById('fo').value,
+    calMethod,
+    calScheduled: document.getElementById('fcs').value,
+    calPlan:   parseInt(document.getElementById('fcplan').value)||0,
+    calCost:   0,
+    calStatus: document.getElementById('fcst').value,
+    maintScheduled: document.getElementById('fms2').value,
+    maintPlanCost:  parseInt(document.getElementById('fmplan').value)||0,
+    maintCost:   0,
+    maintStatus: document.getElementById('fmst2').value,
+    vendor:  document.getElementById('fv').value,
+    contact: document.getElementById('fct').value,
+    lastCal:'', calExpiry:'', lastMaint:'', maintPlan:'',
+  });
+
+  // Auto-add to maintIds if has maint data
+  if(hasMaint && !maintIds.includes(newId)){
+    maintIds.push(newId);
+  }
+
+  closeModal(); render(); showToast();
+}
+function deleteEquip(id){
+  const e = EQ.find(x=>x.id===id);
+  if(!e) return;
+  if(confirm('確定刪除「'+e.name+'」？此操作無法復原。')){
+    const idx = EQ.findIndex(x=>x.id===id);
+    if(idx>-1) EQ.splice(idx,1);
+    render();
+  }
+}
+function openModal(){document.getElementById('modal-overlay').classList.add('open');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function showToast(){
+  const t=document.getElementById('toast');
+  t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+render();
+
+// Global click handler to close all Q panels
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.donut-wrap')){
+    document.querySelectorAll('#cal-q-panel,#maint-q-panel,#con-q-panel').forEach(function(p){
+      if(p) p.style.display='none';
+    });
+  }
+});
+</script>
+</body>
+</html>
