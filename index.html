@@ -356,22 +356,22 @@ select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(
       <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:0 0.5rem;margin-bottom:10px">設備統計</div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 0.5rem 10px;border-bottom:1px solid var(--border);margin-bottom:8px">
         <span style="font-size:12px;color:var(--text2)">總計</span>
-        <span><span style="font-size:20px;font-weight:500;color:var(--text)">20</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span></span>
+        <span><span id="sb-total" style="font-size:20px;font-weight:500;color:var(--text)">20</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem;border-bottom:0.5px solid var(--border)">
         <div style="width:7px;height:7px;border-radius:50%;background:#185FA5;flex-shrink:0"></div>
         <span style="font-size:12px;color:var(--text2);flex:1">電性設備</span>
-        <span style="font-size:13px;font-weight:500;color:var(--text)">10</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+        <span id="sb-elec" style="font-size:13px;font-weight:500;color:var(--text)">10</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem;border-bottom:0.5px solid var(--border)">
         <div style="width:7px;height:7px;border-radius:50%;background:#0F6E56;flex-shrink:0"></div>
         <span style="font-size:12px;color:var(--text2);flex:1">材料設備</span>
-        <span style="font-size:13px;font-weight:500;color:var(--text)">8</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+        <span id="sb-mat" style="font-size:13px;font-weight:500;color:var(--text)">8</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;padding:7px 0.5rem">
         <div style="width:7px;height:7px;border-radius:50%;background:#888780;flex-shrink:0"></div>
         <span style="font-size:12px;color:var(--text2);flex:1">測試電腦</span>
-        <span style="font-size:13px;font-weight:500;color:var(--text)">2</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
+        <span id="sb-pc" style="font-size:13px;font-weight:500;color:var(--text)">2</span><span style="font-size:11px;color:var(--text3);margin-left:2px">台</span>
       </div>
     </div>
   </nav>
@@ -640,6 +640,18 @@ function render(){
   else if(currentPage==='consumables'){mc.innerHTML=renderConsumables();setTimeout(()=>{const c=document.getElementById('con-count');if(c)c.textContent=consumables2026.length+' 筆';},0);}
   if(currentPage==='dashboard')initCharts();
   if(currentPage==='equipment')filterEquipment();
+  updateSidebarStats();
+}
+
+function updateSidebarStats(){
+  const t=document.getElementById('sb-total');
+  const e=document.getElementById('sb-elec');
+  const m=document.getElementById('sb-mat');
+  const p=document.getElementById('sb-pc');
+  if(t) t.textContent=EQ.length;
+  if(e) e.textContent=EQ.filter(x=>x.cat==='電性').length;
+  if(m) m.textContent=EQ.filter(x=>x.cat==='材料').length;
+  if(p) p.textContent=EQ.filter(x=>x.cat==='測試電腦').length;
 }
 
 /* ── DASHBOARD ── */
