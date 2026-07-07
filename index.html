@@ -439,11 +439,17 @@ async function apiRead(sheet){
 
 async function apiWrite(sheet, data){
   try {
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ sheet, action: 'write', data })
     });
-  } catch(e) { console.error('Write error:', e); }
+    const json = await res.json();
+    if(!json.ok) console.error('Write failed:', json.error);
+    return json;
+  } catch(e) {
+    console.error('Write error:', e);
+  }
 }
 
 async function initSheetsData(){
@@ -2399,8 +2405,9 @@ function openRepairAdd(){
 function saveRepair(){
   repairs.push({id:Date.now(),eqId:parseInt(document.getElementById('frid').value),date:document.getElementById('frd').value,note:document.getElementById('frn').value,cost:parseInt(document.getElementById('frc').value)||0});
   closeModal();render();
+  saveToSheets('維修').catch(e=>console.error(e));
 }
-function delRepair(i){if(confirm('確定刪除此維修紀錄？')){repairs.splice(i,1);render();}}
+function delRepair(i){if(confirm('確定刪除此維修紀錄？')){repairs.splice(i,1);render();saveToSheets('維修').catch(e=>console.error(e));}}
 
 function deleteEquip(id){
   const e = EQ.find(x=>x.id===id);
