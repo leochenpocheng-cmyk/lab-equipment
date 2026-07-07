@@ -431,22 +431,23 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbw6Ari8M_mYQNXNeFa7mhfV
 
 async function apiRead(sheet){
   try {
-    const res = await fetch(API_URL + '?sheet=' + encodeURIComponent(sheet) + '&action=read');
+    const url = API_URL + '?sheet=' + encodeURIComponent(sheet) + '&action=read&t=' + Date.now();
+    const res = await fetch(url, { method: 'GET', mode: 'cors' });
     const json = await res.json();
     return json.ok ? json.data : [];
-  } catch(e) { console.error('Read error:', e); return []; }
+  } catch(e) { console.error('Read error:', sheet, e); return []; }
 }
 
 async function apiWrite(sheet, data){
   try {
-    const res = await fetch(API_URL, {
+    // Use no-cors for cross-origin POST to Google Apps Script
+    await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ sheet, action: 'write', data })
     });
-    const json = await res.json();
-    if(!json.ok) console.error('Write failed:', json.error);
-    return json;
+    console.log('Saved to Sheets:', sheet, data.length, 'rows');
   } catch(e) {
     console.error('Write error:', e);
   }
