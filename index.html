@@ -2140,7 +2140,10 @@ ${repairs.length===0?'<div class="empty"><i class="ti ti-tool"></i><p>尚無維�
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:12px;font-weight:500;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 10px;display:inline-block">${r.date}</div>
-        <div style="margin-top:8px"><button class="btn btn-sm btn-danger" onclick="delRepair(${idx})"><i class="ti ti-trash"></i> 刪除</button></div>
+        <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn btn-sm" onclick="openRepairEdit(${idx})"><i class="ti ti-edit"></i> 編輯</button>
+          <button class="btn btn-sm btn-danger" onclick="delRepair(${idx})"><i class="ti ti-trash"></i> 刪除</button>
+        </div>
       </div>
     </div>
   </div>`;}).join('')}`;
@@ -2403,6 +2406,36 @@ function openRepairAdd(){
 <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveRepair()">新增</button></div>`;
   openModal();
 }
+function openRepairEdit(idx){
+  const r = repairs[idx];
+  if(!r) return;
+  const eqOptions = EQ.map(e=>'<option value="'+e.id+'"'+(e.id===r.eqId?' selected':'')+'>'+e.name+'</option>').join('');
+  document.getElementById('modal-body').innerHTML =
+    '<h3>編輯維修紀錄</h3>'
+    +'<div class="form-grid">'
+    +'<div class="fg full"><label>設備</label><select id="frid2">'+eqOptions+'</select></div>'
+    +'<div class="fg"><label>日期</label><input type="date" id="frd2" value="'+(r.date||'')+'"></div>'
+    +'<div class="fg"><label>費用（NT$）</label><input type="number" id="frc2" value="'+(r.cost||0)+'"></div>'
+    +'<div class="fg full"><label>維修說明</label><textarea id="frn2" rows="3" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);font-size:13px;resize:vertical">'+(r.note||'')+'</textarea></div>'
+    +'</div>'
+    +'<div class="modal-foot">'
+    +'<button class="btn" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveRepairEdit('+idx+')">儲存</button>'
+    +'</div>';
+  openModal();
+}
+
+function saveRepairEdit(idx){
+  const r = repairs[idx];
+  if(!r) return;
+  r.eqId = parseInt(document.getElementById('frid2').value);
+  r.date = document.getElementById('frd2').value;
+  r.note = document.getElementById('frn2').value;
+  r.cost = parseInt(document.getElementById('frc2').value)||0;
+  closeModal(); render();
+  saveToSheets('維修').catch(e=>console.error(e));
+}
+
 function saveRepair(){
   repairs.push({id:Date.now(),eqId:parseInt(document.getElementById('frid').value),date:document.getElementById('frd').value,note:document.getElementById('frn').value,cost:parseInt(document.getElementById('frc').value)||0});
   closeModal();render();
