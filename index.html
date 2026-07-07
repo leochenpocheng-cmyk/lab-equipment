@@ -1659,7 +1659,7 @@ function saveConsumable(){
   const accounted = document.getElementById('ci-accounted').value === 'true';
   if(!item){ document.getElementById('ci-item').style.borderColor='var(--red)'; return; }
   if(!person){ document.getElementById('ci-person').style.borderColor='var(--red)'; return; }
-  const newId = Math.max(...consumables2026.map(r=>r.id), 0)+1;
+  const newId = consumables2026.length > 0 ? Math.max(...consumables2026.map(r=>r.id))+1 : 1;
   consumables2026.push({id:newId, item, qty, vendor, cost, reqDate, orderDate:'', accDate, person, purpose, ordered, accounted});
   closeModal();
   render(); saveToSheets('耗材');
@@ -2449,7 +2449,7 @@ function openAddEq(){
 function doAddEq(){
   const name = document.getElementById('fn').value.trim();
   if(!name){ document.getElementById('fn').style.borderColor='var(--red)'; return; }
-  const newId = Math.max(...EQ.map(e=>e.id))+1;
+  const newId = EQ.length > 0 ? Math.max(...EQ.map(e=>e.id))+1 : 1;
   const calMethod = document.getElementById('fcm').value;
   const hasMaint = document.getElementById('fms2')?.value || parseInt(document.getElementById('fmplan')?.value||0)>0;
 
