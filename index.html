@@ -317,6 +317,7 @@ select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(
 
 /* SECTION GAP */
 .section-gap { margin-bottom: 1.25rem; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -330,6 +331,7 @@ select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+    <button onclick="initSheetsData()" style="font-size:11px;padding:4px 12px;border-radius:var(--radius-md);border:1px solid var(--amber);color:var(--amber);background:var(--amber-light);cursor:pointer;display:flex;align-items:center;gap:4px" title="第一次使用時點此，將現有資料上傳到 Google Sheets"><i class="ti ti-cloud-upload"></i> 初始化資料</button>
     <span style="font-size:11px;color:var(--text3)">年度</span>
     <div style="display:flex;gap:4px">
       <button onclick="switchYear(2026)" id="yr-2026" class="filter-chip active" style="font-size:12px;padding:4px 12px">2026</button>
@@ -424,6 +426,137 @@ let repairs=[
 ];
 
 let costEntries=[];
+// ── Google Sheets API ──
+const API_URL = 'https://script.google.com/macros/s/AKfycbw6Ari8M_mYQNXNeFa7mhfVMvAoaoV6EhC-VP7WTY-hoVJbqx-vhuDg4RE35HoDhNFS/exec';
+
+async function apiRead(sheet){
+  try {
+    const res = await fetch(API_URL + '?sheet=' + encodeURIComponent(sheet) + '&action=read');
+    const json = await res.json();
+    return json.ok ? json.data : [];
+  } catch(e) { console.error('Read error:', e); return []; }
+}
+
+async function apiWrite(sheet, data){
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ sheet, action: 'write', data })
+    });
+  } catch(e) { console.error('Write error:', e); }
+}
+
+async function initSheetsData(){
+  if(!confirm('確定要將現有資料初始化到 Google Sheets？\n這會覆蓋 Sheets 中的現有資料。')){
+    return;
+  }
+  showLoading(true);
+  try {
+    // Upload all data to Sheets
+    await Promise.all([
+      apiWrite('設備', EQ),
+      apiWrite('維修', repairs),
+      apiWrite('耗材', consumables2026),
+      apiWrite('保養', chamberMaint),
+      apiWrite('預約', bookingData),
+    ]);
+    showLoading(false);
+    alert('✅ 資料初始化完成！所有資料已上傳到 Google Sheets。\n\n之後所有人開啟網頁時，資料都會從 Sheets 載入。');
+  } catch(e) {
+    showLoading(false);
+    alert('❌ 初始化失敗：' + e.message);
+  }
+}
+
+async function initSheets(){
+  showLoading(true);
+  // Load EQ
+  const eqData = await apiRead('設備');
+  if(eqData.length > 0){
+    EQ.length = 0;
+    eqData.forEach(r => EQ.push({
+      id: +r.id||0, cat: r.cat||'', prop: r.prop||'', name: r.name||'',
+      brand: r.brand||'', model: r.model||'', sn: r.sn||'', owner: r.owner||'',
+      calMethod: r.calMethod||'不需校驗', calScheduled: r.calScheduled||'',
+      calStatus: r.calStatus||'尚未校驗', calPlan: +r.calPlan||0, calCost: +r.calCost||0,
+      calExpiry: r.calExpiry||'', lastCal: r.lastCal||'',
+      maintScheduled: r.maintScheduled||'', maintActualDate: r.maintActualDate||'',
+      maintStatus: r.maintStatus||'尚未保養', maintPlanCost: +r.maintPlanCost||0,
+      maintCost: +r.maintCost||0, vendor: r.vendor||'', contact: r.contact||''
+    }));
+  }
+  // Load 維修
+  const repairData = await apiRead('維修');
+  if(repairData.length > 0){
+    repairs.length = 0;
+    repairData.forEach(r => repairs.push({
+      id: +r.id||0, eqId: +r.eqId||0, date: r.date||'',
+      note: r.note||'', cost: +r.cost||0
+    }));
+  }
+  // Load 耗材
+  const conData = await apiRead('耗材');
+  if(conData.length > 0){
+    consumables2026.length = 0;
+    conData.forEach(r => consumables2026.push({
+      id: +r.id||0, item: r.item||'', qty: r.qty?+r.qty:null,
+      vendor: r.vendor||'', cost: +r.cost||0, reqDate: r.reqDate||'',
+      orderDate: r.orderDate||'', accDate: r.accDate||'',
+      person: r.person||'', purpose: r.purpose||'',
+      ordered: r.ordered==='true'||r.ordered===true,
+      accounted: r.accounted==='true'||r.accounted===true
+    }));
+  }
+  // Load 保養 Chamber
+  const maintData = await apiRead('保養');
+  if(maintData.length > 0){
+    chamberMaint.length = 0;
+    maintData.forEach(r => chamberMaint.push({
+      id: r.id||'', eqId: +r.eqId||11, quarter: r.quarter||'',
+      maintScheduled: r.maintScheduled||'', maintActualDate: r.maintActualDate||'',
+      maintStatus: r.maintStatus||'尚未保養',
+      maintCost: +r.maintCost||0, maintPlanCost: +r.maintPlanCost||0
+    }));
+  }
+  // Load 預約
+  const bookingDataSheet = await apiRead('預約');
+  if(bookingDataSheet.length > 0){
+    bookingData.length = 0;
+    bookingDataSheet.forEach(r => bookingData.push({
+      id: +r.id||Date.now(), device: r.device||'Chamber',
+      owner: r.owner||'蕭志祥', project: r.project||'',
+      unit: r.unit||'', person: r.person||'',
+      start: r.start||'', end: r.end||'',
+      samples: r.samples||'', condition: r.condition||'',
+      type: r.type||'booking'
+    }));
+  }
+  showLoading(false);
+  render();
+}
+
+async function saveToSheets(sheet){
+  let data = [];
+  if(sheet==='設備') data = EQ;
+  else if(sheet==='維修') data = repairs;
+  else if(sheet==='耗材') data = consumables2026;
+  else if(sheet==='保養') data = chamberMaint;
+  else if(sheet==='預約') data = bookingData;
+  await apiWrite(sheet, data);
+}
+
+function showLoading(show){
+  let el = document.getElementById('loading-overlay');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:14px;color:var(--text2)';
+    el.innerHTML = '<div style="text-align:center"><i class="ti ti-loader" style="font-size:32px;animation:spin 1s linear infinite"></i><div style="margin-top:8px">載入資料中...</div></div>';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
 let currentPage='dashboard';
 let currentYear = 2026;
 const yearData = {
@@ -1329,7 +1462,7 @@ function saveBookingEntry(type, device){
   if(conflict){ alert('此區間與現有預約「'+conflict.project+'」衝突！'); return; }
   bookingData.push({id:Date.now(),device,owner,project:proj,unit,person,start,end,samples,condition:cond,type});
   bookingData.sort((a,b)=>a.start.localeCompare(b.start));
-  closeModal(); render();
+  closeModal(); render(); saveToSheets('預約');
 }
 
 function openBookingDetail(id){
@@ -1362,7 +1495,7 @@ function deleteBookingEntry(id){
   if(confirm('確定刪除此預約？')){
     const idx=bookingData.findIndex(b=>b.id===id);
     if(idx>-1) bookingData.splice(idx,1);
-    closeModal(); render();
+    closeModal(); render(); saveToSheets('預約');
   }
 }
 
@@ -1471,7 +1604,7 @@ function saveEditConsumable(id){
   r.ordered = document.getElementById('ei-ordered').value === 'true';
   r.accounted = document.getElementById('ei-accounted').value === 'true';
   closeModal();
-  render();
+  render(); saveToSheets('耗材');
 }
 
 function deleteConsumable(id){
@@ -1529,7 +1662,7 @@ function saveConsumable(){
   const newId = Math.max(...consumables2026.map(r=>r.id), 0)+1;
   consumables2026.push({id:newId, item, qty, vendor, cost, reqDate, orderDate:'', accDate, person, purpose, ordered, accounted});
   closeModal();
-  render();
+  render(); saveToSheets('耗材');
 }
 
 function renderBudgetDonuts(){
@@ -2167,7 +2300,7 @@ function saveEdit(){
   e.model=document.getElementById('fmo').value;e.sn=document.getElementById('fsn').value;
   e.owner=document.getElementById('fo').value;e.calMethod=document.getElementById('fcm').value;
   e.vendor=document.getElementById('fv').value;e.contact=document.getElementById('fct').value;
-  closeModal();render();
+  closeModal();render(); saveToSheets('設備');
 }
 
 function openCalEdit(id){
@@ -2217,7 +2350,7 @@ function saveMaintEdit(){
   e.maintStatus=document.getElementById('fmst').value;
   e.maintCost=parseInt(document.getElementById('fmc').value)||0;
   e.maintPlanCost=parseInt(document.getElementById('fmpc').value)||0;
-  closeModal();render();
+  closeModal();render(); saveToSheets('設備');
 }
 
 let editChamberMaintId=null;
@@ -2318,7 +2451,7 @@ function doAddEq(){
   if(!name){ document.getElementById('fn').style.borderColor='var(--red)'; return; }
   const newId = Math.max(...EQ.map(e=>e.id))+1;
   const calMethod = document.getElementById('fcm').value;
-  const hasMaint = document.getElementById('fms').value || parseInt(document.getElementById('fmplan').value||0)>0;
+  const hasMaint = document.getElementById('fms2')?.value || parseInt(document.getElementById('fmplan')?.value||0)>0;
 
   EQ.push({
     id: newId,
@@ -2369,7 +2502,7 @@ function showToast(){
   setTimeout(()=>t.classList.remove('show'),2600);
 }
 
-render();
+initSheets();
 
 // Global click handler to close all Q panels
 document.addEventListener('click', function(e){
