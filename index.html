@@ -577,7 +577,7 @@ let editId=null;
 let calChartInst=null,maintChartInst=null;
 
 const CAL_BUDGET=32520, MAINT_BUDGET=127998;
-const fd=s=>{if(!s)return'—';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('zh-TW')};
+const fd=s=>{if(!s||s==='—')return'—';const d=new Date(s);if(isNaN(d))return s;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const fm=n=>n?'NT$'+n.toLocaleString():'—';
 
 function calSt(e){
