@@ -2281,14 +2281,27 @@ function renderMaintenance(){
 
 /* ── REPAIR ── */
 function renderRepair(){
+  // Equipment options that have repair records
+  const repairEqIds = [...new Set(repairs.map(r=>r.eqId))];
+  const eqOptions = repairEqIds.map(id=>{
+    const eq = EQ.find(e=>e.id===id);
+    return eq ? '<option value="'+id+'">'+eq.name+'</option>' : '';
+  }).join('');
+
   return`<div class="page-hd">
   <div class="page-hd-left"><h1><i class="ti ti-tools"></i>維修紀錄</h1><p>共 ${repairs.length} 筆維修紀錄</p></div>
-  <button class="btn btn-primary" onclick="openRepairAdd()"><i class="ti ti-plus"></i> 新增維修</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <select id="repair-eq-filter" onchange="filterRepairs()" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--text);max-width:220px">
+      <option value="">全部設備</option>
+      ${eqOptions}
+    </select>
+    <button class="btn btn-primary" onclick="openRepairAdd()"><i class="ti ti-plus"></i> 新增維修</button>
+  </div>
 </div>
 ${repairs.length===0?'<div class="empty"><i class="ti ti-tool"></i><p>尚無維修紀錄</p></div>':repairs.slice().reverse().map((r,ri)=>{
   const idx=repairs.length-1-ri;
   const eq=EQ.find(e=>e.id===r.eqId);
-  return`<div class="repair-card">
+  return`<div class="repair-card" data-eqid="${r.eqId}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
       <div style="flex:1">
         <div style="font-size:15px;font-weight:600;margin-bottom:4px">${eq?eq.name:'未知設備'}</div>
@@ -2566,6 +2579,16 @@ function openRepairAdd(){
 <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveRepair()">新增</button></div>`;
   openModal();
 }
+function filterRepairs(){
+  const val = document.getElementById('repair-eq-filter')?.value || '';
+  let visible = 0;
+  document.querySelectorAll('.repair-card[data-eqid]').forEach(card=>{
+    const show = !val || card.dataset.eqid === val;
+    card.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+}
+
 function openRepairEdit(idx){
   const r = repairs[idx];
   if(!r) return;
