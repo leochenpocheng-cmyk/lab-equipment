@@ -2626,15 +2626,6 @@ function doAddEq(){
 
   closeModal(); render(); showToast(); saveToSheets('設備').catch(e=>console.error(e));
 }
-function deleteEquip(id){
-  const e = EQ.find(x=>x.id===id);
-  if(!e) return;
-  if(confirm('確定刪除「'+e.name+'」？此操作無法復原。')){
-    const idx = EQ.findIndex(x=>x.id===id);
-    if(idx>-1) EQ.splice(idx,1);
-    render();
-  }
-}
 function openModal(){document.getElementById('modal-overlay').classList.add('open');}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
