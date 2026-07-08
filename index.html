@@ -830,7 +830,7 @@ ${(()=>{
         +'<div style="font-size:11px;color:var(--text3)">'+r.note+'</div>'
         +'</div>'
         +'<div style="text-align:right;flex-shrink:0">'
-        +'<div style="font-size:11px;color:var(--text2)">'+r.date+'</div>'
+        +'<div style="font-size:11px;color:var(--text2)">'+fd(r.date)+'</div>'
         +(r.cost?'<div style="font-size:11px;color:var(--amber);font-weight:500">NT$'+r.cost.toLocaleString()+'</div>':'')
         +'</div></div>';
     }).join('')
@@ -2241,7 +2241,7 @@ ${repairs.length===0?'<div class="empty"><i class="ti ti-tool"></i><p>尚無維�
         ${r.cost?`<div style="font-size:12px;color:var(--text3);margin-top:5px">費用：${fm(r.cost)}</div>`:''}
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:12px;font-weight:500;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 10px;display:inline-block">${r.date}</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 10px;display:inline-block">${fd(r.date)}</div>
         <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
           <button class="btn btn-sm" onclick="openRepairEdit(${idx})"><i class="ti ti-edit"></i> 編輯</button>
           <button class="btn btn-sm btn-danger" onclick="delRepair(${idx})"><i class="ti ti-trash"></i> 刪除</button>
@@ -2381,7 +2381,7 @@ function openDetail(id){
   <div><div class="di-label">服務聯絡</div><div class="di-val">${e.contact||'—'}</div></div>
 </div>
 <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">維修紀錄（${rs.length} 筆）</div>
-${rs.length===0?'<div style="font-size:13px;color:var(--text3);padding:8px 0">無維修紀錄</div>':rs.map(r=>`<div class="repair-card" style="margin-bottom:8px"><div style="font-weight:600;margin-bottom:3px">${r.date}</div><div style="font-size:13px;color:var(--text2)">${r.note}${r.cost?' · '+fm(r.cost):''}</div></div>`).join('')}
+${rs.length===0?'<div style="font-size:13px;color:var(--text3);padding:8px 0">無維修紀錄</div>':rs.map(r=>`<div class="repair-card" style="margin-bottom:8px"><div style="font-weight:600;margin-bottom:3px">${fd(r.date)}</div><div style="font-size:13px;color:var(--text2)">${r.note}${r.cost?' · '+fm(r.cost):''}</div></div>`).join('')}
 <div class="modal-foot"><button class="btn" onclick="closeModal()">關閉</button></div>`;
   openModal();
 }
