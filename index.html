@@ -1850,14 +1850,14 @@ function renderBudgetDonuts(){
 
   // Q breakdowns
   const calByQ={Q1:0,Q2:0,Q3:0,Q4:0};
-  EQ.filter(e=>e.calMethod!=='不需校驗'&&e.calScheduled).forEach(e=>{
-    const m=new Date(e.calScheduled).getMonth();
+  EQ.filter(e=>e.calMethod!=='不需校驗'&&e.calActualDate).forEach(e=>{
+    const m=new Date(e.calActualDate).getMonth();
     const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
     calByQ[q]+=(e.calCost||0);
   });
   const maintByQ={Q1:0,Q2:0,Q3:0,Q4:0};
-  maintBase.forEach(e=>{ if(!e.maintScheduled) return; const m=new Date(e.maintScheduled).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(e.maintCost||0); });
-  chamberMaint.forEach(r=>{ if(!r.maintScheduled) return; const m=new Date(r.maintScheduled).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(r.maintCost||0); });
+  maintBase.forEach(e=>{ if(!e.maintActualDate) return; const m=new Date(e.maintActualDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(e.maintCost||0); });
+  chamberMaint.forEach(r=>{ if(!r.maintActualDate) return; const m=new Date(r.maintActualDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(r.maintCost||0); });
   const conByQ={Q1:0,Q2:0,Q3:0,Q4:0};
   consumables2026.filter(r=>r.ordered&&r.reqDate).forEach(r=>{ const m=new Date(r.reqDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; conByQ[q]+=r.cost; });
 
