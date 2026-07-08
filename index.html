@@ -1522,7 +1522,61 @@ function renderBookingFull(){
         +'</div>').join('')
     }
   </div>
+</div>
+
+<div class="card" style="margin-top:1.25rem">
+  <div class="card-hd">
+    <span class="card-title"><i class="ti ti-table"></i> 年度預約總表 <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">${allBookings.length} 筆</span></span>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      ${['全部','Chamber','Oven'].map(d=>'<button onclick="filterBookingTable(\''+d+'\')" id="bkf-'+d+'" class="filter-chip'+(d==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+d+'</button>').join('')}
+    </div>
+  </div>
+  <div class="tbl-wrap" style="border:none;border-radius:0;box-shadow:none;overflow-x:auto">
+    <table style="width:100%;min-width:800px">
+      <thead><tr>
+        <th style="width:80px">設備</th>
+        <th style="width:70px">類型</th>
+        <th style="width:160px">專案 / 說明</th>
+        <th style="width:100px">借用單位</th>
+        <th style="width:80px">借用人</th>
+        <th style="width:170px">日期區間</th>
+        <th style="width:55px">天數</th>
+        <th>Test Samples / Condition</th>
+      </tr></thead>
+      <tbody>
+        ${allBookings.slice().sort((a,b)=>a.start.localeCompare(b.start)).map(b=>{
+          const isMaint = b.type==='maint';
+          const days = Math.round((new Date(b.end)-new Date(b.start))/86400000)+1;
+          const devColor = b.device==='Chamber'?'var(--blue)':'var(--teal)';
+          const devBg = b.device==='Chamber'?'var(--blue-light)':'var(--teal-light)';
+          return '<tr class="bk-row" data-dev="'+b.device+'">'
+            +'<td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:'+devBg+';color:'+devColor+'">'+b.device+'</span></td>'
+            +'<td><span style="font-size:11px;'+(isMaint?'color:var(--amber)':'color:var(--text2)')+'">'+(isMaint?'🔧 保養':'借用')+'</span></td>'
+            +'<td style="font-size:13px;font-weight:500">'+b.project+'</td>'
+            +'<td style="font-size:12px">'+(b.unit||'—')+'</td>'
+            +'<td style="font-size:12px">'+(b.person||'—')+'</td>'
+            +'<td style="font-size:12px">'+fd(b.start)+' ~ '+fd(b.end)+'</td>'
+            +'<td style="font-size:12px;text-align:center">'+days+'</td>'
+            +'<td style="font-size:11px;color:var(--text2);white-space:normal;line-height:1.5">'
+            +(b.samples?'<div>樣品：'+b.samples+'</div>':'')
+            +(b.condition?'<div>條件：'+b.condition+'</div>':'')
+            +((!b.samples&&!b.condition)?'—':'')
+            +'</td>'
+            +'</tr>';
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
 </div>`;
+}
+
+function filterBookingTable(dev){
+  document.querySelectorAll('[id^="bkf-"]').forEach(el=>el.classList.remove('active'));
+  const btn = document.getElementById('bkf-'+dev);
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.bk-row').forEach(row=>{
+    row.style.display = (dev==='全部' || row.dataset.dev===dev) ? '' : 'none';
+  });
 }
 
 function openBookingAdd(type){
