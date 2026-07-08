@@ -1722,7 +1722,7 @@ function deleteConsumable(id){
   if(confirm('確定刪除「'+r.item+'」？')){
     const idx = consumables2026.findIndex(x=>x.id===id);
     if(idx>-1) consumables2026.splice(idx,1);
-    render();
+    render(); saveToSheets('耗材').catch(e=>console.error(e));
   }
 }
 
@@ -2436,7 +2436,7 @@ function saveCalEdit(){
   e.calStatus=document.getElementById('fcst').value;
   e.calCost=parseInt(document.getElementById('fcc').value)||0;
   e.calPlan=parseInt(document.getElementById('fcp').value)||0;
-  closeModal();render();
+  closeModal();render(); saveToSheets('設備').catch(e=>console.error(e));
 }
 
 function openMaintEdit(id){
@@ -2493,7 +2493,7 @@ function saveChamberMaintEdit(){
   row.maintStatus=document.getElementById('fmst').value;
   row.maintCost=parseInt(document.getElementById('fmc').value)||0;
   row.maintPlanCost=parseInt(document.getElementById('fmpc').value)||0;
-  closeModal();render();
+  closeModal();render(); saveToSheets('保養').catch(e=>console.error(e));
 }
 
 function openRepairAdd(){
@@ -2551,7 +2551,7 @@ function deleteEquip(id){
   if(confirm('確定刪除「'+e.name+'」？此操作無法復原。')){
     const idx = EQ.findIndex(x=>x.id===id);
     if(idx>-1) EQ.splice(idx,1);
-    render();
+    render(); saveToSheets('設備').catch(e=>console.error(e));
   }
 }
 
@@ -2624,7 +2624,7 @@ function doAddEq(){
     maintIds.push(newId);
   }
 
-  closeModal(); render(); showToast();
+  closeModal(); render(); showToast(); saveToSheets('設備').catch(e=>console.error(e));
 }
 function deleteEquip(id){
   const e = EQ.find(x=>x.id===id);
