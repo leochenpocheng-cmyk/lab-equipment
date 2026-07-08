@@ -444,6 +444,13 @@ let costEntries=[];
 // ── Google Sheets API ──
 const API_URL = 'https://script.google.com/macros/s/AKfycbw6Ari8M_mYQNXNeFa7mhfVMvAoaoV6EhC-VP7WTY-hoVJbqx-vhuDg4RE35HoDhNFS/exec';
 
+function normDate(s){
+  if(!s) return '';
+  const d = new Date(s);
+  if(isNaN(d)) return s;
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
 async function apiRead(sheet){
   try {
     const url = API_URL + '?sheet=' + encodeURIComponent(sheet) + '&action=read&t=' + Date.now();
@@ -513,7 +520,7 @@ async function initSheets(){
   if(repairData.length > 0){
     repairs.length = 0;
     repairData.forEach(r => repairs.push({
-      id: +r.id||0, eqId: +r.eqId||0, date: r.date||'',
+      id: +r.id||0, eqId: +r.eqId||0, date: normDate(r.date),
       note: r.note||'', cost: +r.cost||0
     }));
   }
@@ -552,7 +559,7 @@ async function initSheets(){
       id: +r.id||Date.now(), device: r.device||'Chamber',
       owner: r.owner||'蕭志祥', project: r.project||'',
       unit: r.unit||'', person: r.person||'',
-      start: r.start||'', end: r.end||'',
+      start: normDate(r.start), end: normDate(r.end),
       samples: r.samples||'', condition: r.condition||'',
       type: r.type||'booking'
     }));
@@ -1497,7 +1504,7 @@ function renderBookingFull(){
           +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:'+(b.device==='Chamber'?'var(--blue-light)':'var(--teal-light)')+';color:'+color+'">'+b.device+'</span>'
           +'<span style="font-size:12px;font-weight:500;flex:1">'+b.project+'</span>'
           +'</div>'
-          +'<div style="font-size:11px;color:var(--text3)">'+b.owner+' · '+b.start+' ~ '+b.end+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+b.owner+' · '+fd(b.start)+' ~ '+fd(b.end)+'</div>'
           +'</div>';
       }).join('')
     }
@@ -1587,7 +1594,7 @@ function openBookingDetail(id){
     +'</div>'
     +'<div class="detail-grid">'
     +'<div><div class="di-label">Owner</div><div class="di-val">'+b.owner+'</div></div>'
-    +'<div><div class="di-label">日期區間</div><div class="di-val">'+b.start+' ~ '+b.end+'</div></div>'
+    +'<div><div class="di-label">日期區間</div><div class="di-val">'+fd(b.start)+' ~ '+fd(b.end)+'</div></div>'
     +(b.unit?'<div><div class="di-label">借用單位</div><div class="di-val">'+b.unit+'</div></div>':'')
     +(b.person?'<div><div class="di-label">借用人</div><div class="di-val">'+b.person+'</div></div>':'')
     +(b.samples?'<div style="grid-column:1/-1"><div class="di-label">Test Samples / Products</div><div class="di-val">'+b.samples+'</div></div>':'')
