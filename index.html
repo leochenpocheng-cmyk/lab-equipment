@@ -516,7 +516,7 @@ async function initSheets(){
       brand: r.brand||'', model: r.model||'', sn: r.sn||'', owner: r.owner||'',
       calMethod: r.calMethod||'不需校驗', calScheduled: normDate(r.calScheduled),
       calStatus: r.calStatus||'尚未校驗', calPlan: +r.calPlan||0, calCost: +r.calCost||0,
-      calExpiry: normDate(r.calExpiry), lastCal: normDate(r.lastCal),
+      calExpiry: normDate(r.calExpiry), lastCal: normDate(r.lastCal), calActualDate: normDate(r.calActualDate),
       maintScheduled: normDate(r.maintScheduled), maintActualDate: normDate(r.maintActualDate),
       maintStatus: r.maintStatus||'尚未保養', maintPlanCost: +r.maintPlanCost||0,
       maintCost: +r.maintCost||0, vendor: r.vendor||'', contact: r.contact||''
@@ -2186,8 +2186,8 @@ function renderCalibration(){
 <thead><tr>
   <th style="width:200px">儀器 / 廠牌 · 型號</th>
   <th style="width:80px">類別<br><span style="font-weight:400;font-size:10px;opacity:0.6">Category</span></th>
-  <th style="width:85px">校驗方式<br><span style="font-weight:400;font-size:10px;opacity:0.6">Method</span></th>
-  <th style="width:110px">預計校驗日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Scheduled</span></th>
+  <th style="width:105px">預計校驗日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Scheduled</span></th>
+  <th style="width:105px">實際校驗日<br><span style="font-weight:400;font-size:10px;opacity:0.6">Actual Date</span></th>
   <th style="width:90px">實際費用</th>
   <th style="width:90px">規劃費用</th>
   <th style="width:85px">狀態<br><span style="font-weight:400;font-size:10px;opacity:0.6">Status</span></th>
@@ -2200,8 +2200,8 @@ function renderCalibration(){
   return`<tr>
     <td><div style="font-weight:500;font-size:13px;margin-bottom:2px">${e.name}</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${e.brand} · ${e.model}</div></td>
     <td><span class="badge badge-${cc}">${e.cat}</span></td>
-    <td style="font-size:12px">${e.calMethod}</td>
     <td style="font-size:12px">${fd(e.calScheduled)||'—'}</td>
+    <td style="font-size:12px">${fd(e.calActualDate)||'—'}</td>
     <td>${fm(e.calCost)}</td>
     <td>${fm(e.calPlan)}</td>
     <td><span class="badge badge-${cls}">${st==="已校驗"?"已校驗 Calibrated":st==="校驗中"?"校驗中 In Progress":"尚未校驗 Pending"}</span></td>
@@ -2479,6 +2479,7 @@ function openCalEdit(id){
 <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem;font-family:var(--mono)">${e.brand} · ${e.model}</div>
 <div class="form-grid">
   <div class="fg"><label>預計校驗日期</label><input type="date" id="fcs" value="${e.calScheduled||''}"></div>
+  <div class="fg"><label>實際校驗日期</label><input type="date" id="fcad" value="${e.calActualDate||''}"></div>
   <div class="fg"><label>校驗狀態</label><select id="fcst">${statusOpts}</select></div>
   <div class="fg"><label>實際費用（NT$）</label><input type="number" id="fcc" value="${e.calCost||0}"></div>
   <div class="fg"><label>規劃費用（NT$）</label><input type="number" id="fcp" value="${e.calPlan||0}"></div>
@@ -2489,6 +2490,7 @@ function openCalEdit(id){
 function saveCalEdit(){
   const e=EQ.find(x=>x.id===editId);
   e.calScheduled=document.getElementById('fcs').value;
+  e.calActualDate=document.getElementById('fcad').value;
   e.calStatus=document.getElementById('fcst').value;
   e.calCost=parseInt(document.getElementById('fcc').value)||0;
   e.calPlan=parseInt(document.getElementById('fcp').value)||0;
