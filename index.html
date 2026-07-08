@@ -29,6 +29,20 @@
   --font: 'IBM Plex Sans TC', sans-serif;
   --mono: 'IBM Plex Mono', monospace;
 }
+
+/* ── DARK MODE ── */
+[data-theme="dark"] {
+  --bg: #14161A; --surface: #1E2128; --surface2: #262A33;
+  --border: #333845; --border2: #454B5C;
+  --text: #E8E9ED; --text2: #A8ACB8; --text3: #6E7380;
+  --blue: #5B9BFF; --blue-light: #1D2B45; --blue-mid: #4A85D4;
+  --teal: #34C296; --teal-light: #16302A;
+  --amber: #F0A94A; --amber-light: #33291A;
+  --red: #F06A6A; --red-light: #3A2020;
+  --green: #4ACB6B; --green-light: #1A3322;
+}
+[data-theme="dark"] .topbar img { filter: brightness(1.2); }
+[data-theme="dark"] .toast { background: #2A2E38; color: #E8E9ED; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; font-size: 14px; line-height: 1.5; }
 
 /* TOPBAR */
@@ -332,6 +346,7 @@ select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(
   </div>
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
 
+    <button onclick="toggleDarkMode()" id="dark-toggle" style="font-size:14px;width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)" title="切換深色模式"><i class="ti ti-moon"></i></button>
     <span style="font-size:11px;color:var(--text3)">年度</span>
     <div style="display:flex;gap:4px">
       <button onclick="switchYear(2026)" id="yr-2026" class="filter-chip active" style="font-size:12px;padding:4px 12px">2026</button>
@@ -386,7 +401,7 @@ select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(
   </div>
 </div>
 
-<div class="toast" id="toast"><i class="ti ti-check"></i> 已新增紀錄！</div>
+<div class="toast" id="toast"><i class="ti ti-check"></i> <span id="toast-msg">已新增紀錄！</span></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -476,7 +491,7 @@ async function initSheetsData(){
 }
 
 async function initSheets(){
-  showLoading(true);
+  showLoading(true, '載入設備資料 1/5...');
   // Load EQ
   const eqData = await apiRead('設備');
   if(eqData.length > 0){
@@ -492,6 +507,7 @@ async function initSheets(){
       maintCost: +r.maintCost||0, vendor: r.vendor||'', contact: r.contact||''
     }));
   }
+  showLoading(true, '載入維修紀錄 2/5...');
   // Load 維修
   const repairData = await apiRead('維修');
   if(repairData.length > 0){
@@ -501,6 +517,7 @@ async function initSheets(){
       note: r.note||'', cost: +r.cost||0
     }));
   }
+  showLoading(true, '載入耗材資料 3/5...');
   // Load 耗材
   const conData = await apiRead('耗材');
   if(conData.length > 0){
@@ -514,6 +531,7 @@ async function initSheets(){
       accounted: r.accounted==='true'||r.accounted===true
     }));
   }
+  showLoading(true, '載入保養資料 4/5...');
   // Load 保養 Chamber
   const maintData = await apiRead('保養');
   if(maintData.length > 0){
@@ -525,6 +543,7 @@ async function initSheets(){
       maintCost: +r.maintCost||0, maintPlanCost: +r.maintPlanCost||0
     }));
   }
+  showLoading(true, '載入預約資料 5/5...');
   // Load 預約
   const bookingDataSheet = await apiRead('預約');
   if(bookingDataSheet.length > 0){
@@ -553,15 +572,37 @@ async function saveToSheets(sheet){
   await apiWrite(sheet, data);
 }
 
-function showLoading(show){
+function toggleDarkMode(){
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? '' : 'dark';
+  const btn = document.getElementById('dark-toggle');
+  if(btn) btn.innerHTML = isDark ? '<i class="ti ti-moon"></i>' : '<i class="ti ti-sun"></i>';
+  try { localStorage.setItem('theme', isDark ? 'light' : 'dark'); } catch(e){}
+}
+
+// Restore theme on load
+try {
+  if(localStorage.getItem('theme') === 'dark'){
+    document.documentElement.dataset.theme = 'dark';
+    setTimeout(()=>{
+      const btn = document.getElementById('dark-toggle');
+      if(btn) btn.innerHTML = '<i class="ti ti-sun"></i>';
+    }, 100);
+  }
+} catch(e){}
+
+function showLoading(show, msg){
   let el = document.getElementById('loading-overlay');
   if(!el){
     el = document.createElement('div');
     el.id = 'loading-overlay';
-    el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:14px;color:var(--text2)';
-    el.innerHTML = '<div style="text-align:center"><i class="ti ti-loader" style="font-size:32px;animation:spin 1s linear infinite"></i><div style="margin-top:8px">載入資料中...</div></div>';
+    el.style.cssText = 'position:fixed;inset:0;background:var(--bg);opacity:0.92;display:flex;align-items:center;justify-content:center;z-index:9999;font-size:14px;color:var(--text2)';
+    el.innerHTML = '<div style="text-align:center"><i class="ti ti-loader" style="font-size:32px;animation:spin 1s linear infinite"></i><div id="loading-msg" style="margin-top:8px">載入資料中...</div></div>';
     document.body.appendChild(el);
   }
+  const msgEl = document.getElementById('loading-msg');
+  if(msgEl && msg) msgEl.textContent = msg;
   el.style.display = show ? 'flex' : 'none';
 }
 
@@ -637,7 +678,7 @@ function render(){
   else if(currentPage==='maintenance')mc.innerHTML=renderMaintenance();
   else if(currentPage==='repair')mc.innerHTML=renderRepair();
   else if(currentPage==='budget')mc.innerHTML=renderBudget();
-  else if(currentPage==='booking')mc.innerHTML=renderBooking();
+  else if(currentPage==='booking'){mc.innerHTML=renderBooking();setTimeout(()=>scrollGanttToToday(),50);}
   else if(currentPage==='consumables'){mc.innerHTML=renderConsumables();setTimeout(()=>{const c=document.getElementById('con-count');if(c)c.textContent=consumables2026.length+' 筆';},0);}
   if(currentPage==='dashboard')initCharts();
   if(currentPage==='equipment')filterEquipment();
@@ -1168,6 +1209,45 @@ let bookingData = [
 ];
 let bookingEditId = null;
 
+function showGanttTooltip(e, el){
+  hideGanttTooltip();
+  const data = el.dataset.tooltip;
+  if(!data) return;
+  const lines = data.split('|');
+  const tip = document.createElement('div');
+  tip.id = 'gantt-tooltip';
+  tip.style.cssText = 'position:fixed;background:#1A1916;color:#fff;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.7;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:280px';
+  tip.innerHTML = '<div style="font-weight:600;font-size:13px;margin-bottom:4px">'+lines[0]+'</div>'
+    + lines.slice(1).map(l=>'<div style="opacity:0.85">'+l+'</div>').join('');
+  document.body.appendChild(tip);
+  const rect = el.getBoundingClientRect();
+  const tipRect = tip.getBoundingClientRect();
+  let top = rect.top - tipRect.height - 8;
+  if(top < 10) top = rect.bottom + 8;
+  let leftPos = rect.left + rect.width/2 - tipRect.width/2;
+  if(leftPos < 10) leftPos = 10;
+  if(leftPos + tipRect.width > window.innerWidth - 10) leftPos = window.innerWidth - tipRect.width - 10;
+  tip.style.top = top + 'px';
+  tip.style.left = leftPos + 'px';
+}
+
+function hideGanttTooltip(){
+  const tip = document.getElementById('gantt-tooltip');
+  if(tip) tip.remove();
+}
+
+function scrollGanttToToday(){
+  const wrap = document.getElementById('gantt-scroll-wrap');
+  if(!wrap) return;
+  const today = new Date();
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const dayOfYr = Math.floor((today - startOfYear) / 86400000);
+  const pctOfYear = dayOfYr / 365;
+  // Scroll so today is roughly 1/3 from left edge
+  const scrollTarget = wrap.scrollWidth * pctOfYear - wrap.clientWidth / 3;
+  wrap.scrollLeft = Math.max(0, scrollTarget);
+}
+
 function renderBookingFull(){
   const year = 2026;
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1226,8 +1306,17 @@ function renderBookingFull(){
       const isMaint = b.type==='maint';
       const bg = isMaint?'var(--amber)':color;
       const textC = '#fff';
-      return '<div style="position:absolute;left:'+left+';width:'+width+';height:28px;top:50%;transform:translateY(-50%);background:'+bg+';border-radius:4px;cursor:pointer;display:flex;align-items:center;padding:0 6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);z-index:2" '
-        +'onclick="openBookingDetail('+b.id+')" title="'+b.project+' ('+b.start+' ~ '+b.end+')">'
+      const days = Math.round((new Date(b.end)-new Date(b.start))/86400000)+1;
+      const tooltipData = [
+        b.project,
+        (isMaint?'類型：保養':'借用單位：'+(b.unit||'—')),
+        (isMaint?'':'借用人：'+(b.person||'—')),
+        '日期：'+fd(b.start)+' ~ '+fd(b.end)+'（'+days+' 天）',
+        (b.samples?'樣品：'+b.samples:''),
+        (b.condition?'條件：'+b.condition:'')
+      ].filter(Boolean).join('|');
+      return '<div class="gantt-bar" data-tooltip="'+tooltipData.replace(/"/g,'&quot;')+'" style="position:absolute;left:'+left+';width:'+width+';height:28px;top:50%;transform:translateY(-50%);background:'+bg+';border-radius:4px;cursor:pointer;display:flex;align-items:center;padding:0 6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);z-index:2" '
+        +'onclick="openBookingDetail('+b.id+')" onmouseenter="showGanttTooltip(event,this)" onmouseleave="hideGanttTooltip()">'
         +'<span style="font-size:10px;font-weight:600;color:'+textC+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(isMaint?'🔧 ':'')+b.project+'</span>'
         +'</div>';
     }).join('');
@@ -1295,8 +1384,8 @@ function renderBookingFull(){
       <span style="display:flex;align-items:center;gap:4px"><div style="width:1.5px;height:12px;background:var(--red)"></div>今天</span>
     </div>
   </div>
-  <div style="overflow-x:auto">
-    <div style="min-width:700px">
+  <div style="overflow-x:auto" id="gantt-scroll-wrap">
+    <div style="min-width:900px">
       <div style="display:flex;margin-bottom:4px">
         <div style="width:90px;flex-shrink:0"></div>
         <div style="flex:1;position:relative;height:22px">${monthHeaders}</div>
@@ -2550,8 +2639,10 @@ function openModal(){document.getElementById('modal-overlay').classList.add('ope
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-function showToast(){
+function showToast(msg){
   const t=document.getElementById('toast');
+  const m=document.getElementById('toast-msg');
+  if(m) m.textContent = msg || '✓ 已儲存並同步至雲端';
   t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2600);
 }
