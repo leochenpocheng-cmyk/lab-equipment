@@ -498,25 +498,30 @@ async function initSheetsData(){
 }
 
 async function initSheets(){
-  showLoading(true, '載入設備資料 1/5...');
-  // Load EQ
-  const eqData = await apiRead('設備');
+  showLoading(true, '載入資料中...');
+
+  // Parallel load all 5 sheets at once
+  const [eqData, repairData, conData, maintData, bookingDataSheet] = await Promise.all([
+    apiRead('設備'),
+    apiRead('維修'),
+    apiRead('耗材'),
+    apiRead('保養'),
+    apiRead('預約'),
+  ]);
+
   if(eqData.length > 0){
     EQ.length = 0;
     eqData.forEach(r => EQ.push({
       id: +r.id||0, cat: r.cat||'', prop: r.prop||'', name: r.name||'',
       brand: r.brand||'', model: r.model||'', sn: r.sn||'', owner: r.owner||'',
-      calMethod: r.calMethod||'不需校驗', calScheduled: r.calScheduled||'',
+      calMethod: r.calMethod||'不需校驗', calScheduled: normDate(r.calScheduled),
       calStatus: r.calStatus||'尚未校驗', calPlan: +r.calPlan||0, calCost: +r.calCost||0,
-      calExpiry: r.calExpiry||'', lastCal: r.lastCal||'',
-      maintScheduled: r.maintScheduled||'', maintActualDate: r.maintActualDate||'',
+      calExpiry: normDate(r.calExpiry), lastCal: normDate(r.lastCal),
+      maintScheduled: normDate(r.maintScheduled), maintActualDate: normDate(r.maintActualDate),
       maintStatus: r.maintStatus||'尚未保養', maintPlanCost: +r.maintPlanCost||0,
       maintCost: +r.maintCost||0, vendor: r.vendor||'', contact: r.contact||''
     }));
   }
-  showLoading(true, '載入維修紀錄 2/5...');
-  // Load 維修
-  const repairData = await apiRead('維修');
   if(repairData.length > 0){
     repairs.length = 0;
     repairData.forEach(r => repairs.push({
@@ -524,35 +529,26 @@ async function initSheets(){
       note: r.note||'', cost: +r.cost||0
     }));
   }
-  showLoading(true, '載入耗材資料 3/5...');
-  // Load 耗材
-  const conData = await apiRead('耗材');
   if(conData.length > 0){
     consumables2026.length = 0;
     conData.forEach(r => consumables2026.push({
       id: +r.id||0, item: r.item||'', qty: r.qty?+r.qty:null,
-      vendor: r.vendor||'', cost: +r.cost||0, reqDate: r.reqDate||'',
-      orderDate: r.orderDate||'', accDate: r.accDate||'',
+      vendor: r.vendor||'', cost: +r.cost||0, reqDate: normDate(r.reqDate),
+      orderDate: normDate(r.orderDate), accDate: normDate(r.accDate),
       person: r.person||'', purpose: r.purpose||'',
       ordered: r.ordered==='true'||r.ordered===true,
       accounted: r.accounted==='true'||r.accounted===true
     }));
   }
-  showLoading(true, '載入保養資料 4/5...');
-  // Load 保養 Chamber
-  const maintData = await apiRead('保養');
   if(maintData.length > 0){
     chamberMaint.length = 0;
     maintData.forEach(r => chamberMaint.push({
       id: r.id||'', eqId: +r.eqId||11, quarter: r.quarter||'',
-      maintScheduled: r.maintScheduled||'', maintActualDate: r.maintActualDate||'',
+      maintScheduled: normDate(r.maintScheduled), maintActualDate: normDate(r.maintActualDate),
       maintStatus: r.maintStatus||'尚未保養',
       maintCost: +r.maintCost||0, maintPlanCost: +r.maintPlanCost||0
     }));
   }
-  showLoading(true, '載入預約資料 5/5...');
-  // Load 預約
-  const bookingDataSheet = await apiRead('預約');
   if(bookingDataSheet.length > 0){
     bookingData.length = 0;
     bookingDataSheet.forEach(r => bookingData.push({
@@ -568,7 +564,6 @@ async function initSheets(){
   render();
   updateSidebarStats();
 }
-
 async function saveToSheets(sheet){
   let data = [];
   if(sheet==='設備') data = EQ;
