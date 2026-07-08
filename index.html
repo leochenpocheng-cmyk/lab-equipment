@@ -1094,7 +1094,7 @@ function renderConsumables(){
   <div class="card-hd"><span class="card-title"><i class="ti ti-list-details"></i> 2026 採購紀錄</span>
     <span style="font-size:11px;color:var(--text3);margin-left:auto" id="con-count"></span>
   </div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:var(--radius-md)">
+  <div class="filter-bar">
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">季度</span>
       ${['全部','Q1','Q2','Q3','Q4'].map(q=>'<button onclick="filterConsumables()" data-fq="'+q+'" class="filter-chip con-filter'+(q==='全部'?' active':'')+'" style="font-size:11px;padding:3px 10px">'+q+'</button>').join('')}
@@ -2283,19 +2283,20 @@ function renderMaintenance(){
 function renderRepair(){
   // Equipment options that have repair records
   const repairEqIds = [...new Set(repairs.map(r=>r.eqId))];
-  const eqOptions = repairEqIds.map(id=>{
-    const eq = EQ.find(e=>e.id===id);
-    return eq ? '<option value="'+id+'">'+eq.name+'</option>' : '';
-  }).join('');
-
   return`<div class="page-hd">
   <div class="page-hd-left"><h1><i class="ti ti-tools"></i>維修紀錄</h1><p>共 ${repairs.length} 筆維修紀錄</p></div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <select id="repair-eq-filter" onchange="filterRepairs()" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--text);max-width:220px">
-      <option value="">全部設備</option>
-      ${eqOptions}
-    </select>
-    <button class="btn btn-primary" onclick="openRepairAdd()"><i class="ti ti-plus"></i> 新增維修</button>
+  <button class="btn btn-primary" onclick="openRepairAdd()"><i class="ti ti-plus"></i> 新增維修</button>
+</div>
+<div class="filter-bar">
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:600;color:var(--text3);min-width:40px">設備</span>
+    <button onclick="filterRepairsByEq('')" class="filter-chip repair-eq-chip active" data-eqid="" style="font-size:11px;padding:3px 10px">全部</button>
+    ${repairEqIds.map(id=>{
+      const eq = EQ.find(e=>e.id===id);
+      if(!eq) return '';
+      const shortName = eq.name.split(' ')[0];
+      return '<button onclick="filterRepairsByEq(\''+id+'\')" class="filter-chip repair-eq-chip" data-eqid="'+id+'" style="font-size:11px;padding:3px 10px">'+shortName+'</button>';
+    }).join('')}
   </div>
 </div>
 ${repairs.length===0?'<div class="empty"><i class="ti ti-tool"></i><p>尚無維修紀錄</p></div>':repairs.slice().reverse().map((r,ri)=>{
@@ -2579,13 +2580,12 @@ function openRepairAdd(){
 <div class="modal-foot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveRepair()">新增</button></div>`;
   openModal();
 }
-function filterRepairs(){
-  const val = document.getElementById('repair-eq-filter')?.value || '';
-  let visible = 0;
+function filterRepairsByEq(eqId){
+  document.querySelectorAll('.repair-eq-chip').forEach(el=>el.classList.remove('active'));
+  const btn = document.querySelector('.repair-eq-chip[data-eqid="'+eqId+'"]');
+  if(btn) btn.classList.add('active');
   document.querySelectorAll('.repair-card[data-eqid]').forEach(card=>{
-    const show = !val || card.dataset.eqid === val;
-    card.style.display = show ? '' : 'none';
-    if(show) visible++;
+    card.style.display = (!eqId || card.dataset.eqid === String(eqId)) ? '' : 'none';
   });
 }
 
