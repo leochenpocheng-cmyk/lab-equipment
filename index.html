@@ -1042,7 +1042,7 @@ function renderConsumables(){
 
   // Q breakdown
   const qCost = {Q1:0,Q2:0,Q3:0,Q4:0};
-  ordered.forEach(r=>{ if(r.reqDate){ const q=getQ(r.reqDate); if(qCost[q]!==undefined) qCost[q]+=r.cost; }});
+  ordered.forEach(r=>{ if(r.accDate){ const q=getQ(r.accDate); if(qCost[q]!==undefined) qCost[q]+=r.cost; }});
 
   const cats = [...new Set(consumablesCatalog.map(c=>c.cat))];
   const catColors = {設備:'elec',切片用品:'mat',電性:'elec',其他:'na',文具:'na'};
@@ -1126,12 +1126,12 @@ function renderConsumables(){
     <th style="width:55px">報帳</th>
     <th style="width:90px">操作</th>
   </tr></thead>
-  <tbody>${consumables2026.map(r=>`<tr class="con-row" data-q="${r.reqDate?getQ(r.reqDate):'—'}" data-p="${r.person||''}" data-t="${r.purpose||''}" data-ordered="${r.ordered}" data-accounted="${r.accounted}">
+  <tbody>${consumables2026.map(r=>`<tr class="con-row" data-q="${r.accDate?getQ(r.accDate):'—'}" data-p="${r.person||''}" data-t="${r.purpose||''}" data-ordered="${r.ordered}" data-accounted="${r.accounted}">
     <td class="td-name">${r.item}</td>
     <td style="font-size:12px">${r.qty||'—'}</td>
     <td style="font-size:12px">${r.vendor||'—'}</td>
     <td style="font-size:12px;font-weight:500">${r.cost?'NT$'+r.cost.toLocaleString():'—'}</td>
-    <td style="font-size:11px;text-align:center">${r.reqDate?getQ(r.reqDate):'—'}</td>
+    <td style="font-size:11px;text-align:center">${r.accDate?getQ(r.accDate):'—'}</td>
     <td style="font-size:12px">${r.person}</td>
     <td><span class="badge ${r.purpose==='工具採購'?'badge-elec':'badge-na'}" style="font-size:10px">${r.purpose||'—'}</span></td>
     <td style="font-size:11px">${r.accDate?fd(r.accDate):'—'}</td>
@@ -1859,7 +1859,7 @@ function renderBudgetDonuts(){
   maintBase.forEach(e=>{ if(!e.maintActualDate) return; const m=new Date(e.maintActualDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(e.maintCost||0); });
   chamberMaint.forEach(r=>{ if(!r.maintActualDate) return; const m=new Date(r.maintActualDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; maintByQ[q]+=(r.maintCost||0); });
   const conByQ={Q1:0,Q2:0,Q3:0,Q4:0};
-  consumables2026.filter(r=>r.ordered&&r.reqDate).forEach(r=>{ const m=new Date(r.reqDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; conByQ[q]+=r.cost; });
+  consumables2026.filter(r=>r.ordered&&r.accDate).forEach(r=>{ const m=new Date(r.accDate).getMonth(); const q=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4'; conByQ[q]+=r.cost; });
 
   function donutSVG(p,color){
     const dash=Math.round((p/100)*C);
